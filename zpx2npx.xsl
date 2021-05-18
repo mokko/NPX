@@ -75,9 +75,9 @@
 			<!-- ausstellung -->
 			<ausstellung>
 				<xsl:for-each select="/z:application/z:modules/z:module[
-					@name ='Exhibition']/z:moduleItem[1]/z:repeatableGroup[
-					@name ='ExhTitleGrp']/z:repeatableGroupItem/z:dataField[
-					@name ='TitleClb']/z:value">
+					@name = 'Exhibition']/z:moduleItem[1]/z:repeatableGroup[
+					@name = 'ExhTitleGrp']/z:repeatableGroupItem/z:dataField[
+					@name = 'TitleClb']/z:value">
 					<xsl:if test="starts-with(.,'HUFO -')">
 						<xsl:value-of select="."/>
 					</xsl:if>
@@ -86,7 +86,13 @@
 					</xsl:if>
 				</xsl:for-each>
 			</ausstellung>
-			<!-- xsl:apply-templates select="z:moduleReference[@name='ObjRegistrarRef']"/-->
+			<ausstellungSektion>
+				<xsl:value-of select="/z:application/z:modules/z:module[
+					@name = 'Registrar']/z:moduleItem/z:moduleReference[
+					@name = 'RegObjectRef']/z:moduleReferenceItem[
+					@moduleItemId = $id]/../../z:virtualField[
+					@name = 'RegSectionVrt']"/>
+			</ausstellungSektion>
 
 			<bearbDatum>
 				<xsl:value-of select="z:systemField[@name='__lastModified']/z:value"/>
