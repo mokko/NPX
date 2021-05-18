@@ -12,9 +12,10 @@
 
     <!-- 
 	Fragen an Cornelia:	
-	- Soll ich [s:n] unterdrucken, wenn es nur einen Wert gibt?
+	- Soll ich [s:n] unterdrucken, wenn es nur einen Wert gibt? Ich mach' das mal.
 	- Soll ich Gewicht jetzt in eigenes Feld schreiben, d.h. nicht in Maße? 
-	  Wäre eine Unregelmäßigkeit in meinen Mapping, aber technisch einfach.
+	  Das war früher mal von CF gewünscht, ging damals nicht, geht jetzt, wäre aber 
+	  eine Unregelmäßigkeit in meinen Mapping.
 	-->
 
     <xsl:template match="/">
@@ -63,13 +64,30 @@
 	</xsl:template>
 
 	<xsl:template match="/z:application/z:modules/z:module[@name='Object']/z:moduleItem">
+		<xsl:variable name="id" select="@id"/>
+		<xsl:message>
+			<xsl:value-of select="$id"/>
+		</xsl:message>
 		<sammlungsobjekt>
 			<!-- anzahlTeile-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjNumberObjectsGrp']"/>
 
-			<!-- ausstellung
-			<xsl:apply-templates select="z:moduleReference[@name='ObjRegistrarRef']"/>
-			-->
+			<!-- ausstellung -->
+			<ausstellung>
+				<xsl:for-each select="/z:application/z:modules/z:module[
+					@name ='Exhibition']/z:moduleItem[1]/z:repeatableGroup[
+					@name ='ExhTitleGrp']/z:repeatableGroupItem/z:dataField[
+					@name ='TitleClb']/z:value">
+					<xsl:if test="starts-with(.,'HUFO -')">
+						<xsl:value-of select="."/>
+					</xsl:if>
+					<xsl:if test="position()!=last()">
+						<xsl:text>; </xsl:text>
+					</xsl:if>
+				</xsl:for-each>
+			</ausstellung>
+			<!-- xsl:apply-templates select="z:moduleReference[@name='ObjRegistrarRef']"/-->
+
 			<bearbDatum>
 				<xsl:value-of select="z:systemField[@name='__lastModified']/z:value"/>
 			</bearbDatum>
@@ -113,9 +131,14 @@
 	</xsl:template>
 
 	<xsl:template match="z:dataField[@name = 'MulOriginalFileTxt']">
-		<dateiname>
-			<xsl:value-of select="z:value"/>
-		</dateiname>
+		<dateinameNeu>
+			<xsl:value-of select="../@id"/>
+			<xsl:analyze-string select="z:value" regex="(\.\w+)">
+				<xsl:matching-substring>
+					<xsl:value-of select="regex-group(1)"/>
+				</xsl:matching-substring>
+			</xsl:analyze-string>
+		</dateinameNeu>
 	</xsl:template>
 
 	<xsl:template match="z:vocabularyReference[@name = 'MulColorVoc']">
@@ -204,7 +227,7 @@
 
 	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']">
 		<erwerbNotizAusgabe>
-			<xsl:value-of select="."/>
+			<xsl:value-of select="z:repeatableGroupItem/z:dataField[@name = 'MemoClb']"/>
 		</erwerbNotizAusgabe>
 	</xsl:template>
 
