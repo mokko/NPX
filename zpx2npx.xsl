@@ -93,13 +93,16 @@
 					@moduleItemId = $id]/../../z:virtualField[
 					@name = 'RegSectionVrt']"/>
 			</ausstellungSektion>
-
 			<bearbDatum>
 				<xsl:value-of select="z:systemField[@name='__lastModified']/z:value"/>
 			</bearbDatum>
 			<bereich>
 				<xsl:value-of select="z:vocabularyReference[@name = 'ObjOrgGroupVoc']/z:vocabularyReferenceItem/@name"/>
 			</bereich>
+			<!--erwerbDatum-->
+			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionDateGrp']"/> 
+			<!--erwerbungsart-->
+			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/> 
 			<!--erwerbNotizAusgabe-->
 			<xsl:apply-templates select="z:repeatableGroup[
 				@name='ObjAcquisitionNotesGrp' and 
@@ -198,9 +201,8 @@
 	</xsl:template>
 
 
-
-
 	<!-- OBJECTS:ALL OTHERS ALPHABETICALLY -->
+
 
 	<xsl:template match="z:repeatableGroup[@name='ObjNumberObjectsGrp']">
 		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
@@ -219,17 +221,36 @@
 		</anzahlTeile>
 	</xsl:template>
 
-	<!-- doesn't work as expected; has false positives -->
-	<xsl:template match="z:moduleReference[@name='ObjRegistrarRef']">
-		<ausstellung>
-			<xsl:for-each select="z:moduleReferenceItem">
-				<xsl:value-of select="substring-before(z:formattedValue,',')"/>
+	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionDateGrp']">
+		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
+		<erwerbDatum>
+			<xsl:for-each select="z:repeatableGroupItem">
+				<xsl:sort select="z:dataField[@name='SortLnu']/z:value"/>
+				<xsl:if test="len &gt; 1">
+					<xsl:call-template name="sortQ"/> 
+				</xsl:if>
+				<xsl:value-of select="z:dataField[@name = 'DateFromTxt']"/>
                 <xsl:if test="position()!=last()">
                     <xsl:text>; </xsl:text>
                 </xsl:if>
 			</xsl:for-each>
-		</ausstellung>
-	</xsl:template>
+		</erwerbDatum>
+	</xsl:template>			 
+
+	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']">
+		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
+		<erwerbungsart>
+			<xsl:for-each select="z:repeatableGroupItem">
+				<xsl:value-of select="z:vocabularyReference[@name = 'MethodVoc']/z:vocabularyReferenceItem/@name"/>
+                <xsl:if test="position()!=last()">
+                    <xsl:text>; </xsl:text>
+                </xsl:if>
+			</xsl:for-each>
+		</erwerbungsart>
+	</xsl:template>			 
+
+
+
 
 	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']">
 		<erwerbNotizAusgabe>
