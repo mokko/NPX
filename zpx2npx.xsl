@@ -102,7 +102,9 @@
 			<!--erwerbDatum-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionDateGrp']"/> 
 			<!--erwerbungsart-->
-			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/> 
+			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
+			<!--erwerbVon-->
+			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
 			<!--erwerbNotizAusgabe-->
 			<xsl:apply-templates select="z:repeatableGroup[
 				@name='ObjAcquisitionNotesGrp' and 
@@ -126,6 +128,9 @@
 			<sachbegriff>
 				<xsl:value-of select="z:dataField[@name='ObjTechnicalTermClb']"/>
 			</sachbegriff>
+			<!--veräußerer-->
+			<xsl:apply-templates select="z:moduleReference[@name='ObjPerAssociationRef' and 
+			./z:moduleReferenceItem/z:vocabularyReference/z:vocabularyReferenceItem/@name='Veräußerer']"/>
 			<verwaltendeInstitution>
 				<xsl:value-of select="z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem/z:formattedValue"/>
 			</verwaltendeInstitution>
@@ -349,6 +354,19 @@
 			</xsl:for-each>		
 		</onlineBeschreibung>
 	</xsl:template>
+
+	<!--veräußerer-->
+	<xsl:template match="z:moduleReference[@name='ObjPerAssociationRef']">
+		<veräußerer>
+			<xsl:for-each select="z:moduleReferenceItem[z:vocabularyReference/z:vocabularyReferenceItem/@name='Veräußerer']">
+				<xsl:value-of select="substring-before(z:formattedValue,', Veräußerer')"/>
+                <xsl:if test="position()!=last()">
+                    <xsl:text>; </xsl:text>
+                </xsl:if>
+			</xsl:for-each>		
+		</veräußerer>
+	</xsl:template>
+
 
 	<!-- named Templates -->
 
