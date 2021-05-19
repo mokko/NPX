@@ -103,8 +103,9 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionDateGrp']"/> 
 			<!--erwerbungsart-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
-			<!--erwerbVon-->
+			<!--erwerbVon
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
+			-->
 			<!--erwerbNotizAusgabe-->
 			<xsl:apply-templates select="z:repeatableGroup[
 				@name='ObjAcquisitionNotesGrp' and 
@@ -124,6 +125,10 @@
 			</objId>
 			<!-- onlineBeschreibung -->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjTextOnlineGrp']"/>
+			<!--rauteElement-->
+			<xsl:apply-templates select="z:moduleReference[@name='ObjObjectGroupsRef']"/>
+			
+
 			<!-- todo multiple sachbegriffe-->
 			<sachbegriff>
 				<xsl:value-of select="z:dataField[@name='ObjTechnicalTermClb']"/>
@@ -254,9 +259,6 @@
 		</erwerbungsart>
 	</xsl:template>			 
 
-
-
-
 	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']">
 		<erwerbNotizAusgabe>
 			<xsl:value-of select="z:repeatableGroupItem/z:dataField[@name = 'MemoClb']"/>
@@ -354,6 +356,25 @@
 			</xsl:for-each>		
 		</onlineBeschreibung>
 	</xsl:template>
+
+	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
+ 
+		<!--	EM-ME HUF-E39040# -->
+		<rauteElement>
+			<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
+				<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d*)#">
+					<xsl:matching-substring>
+						<xsl:value-of select="regex-group(1)"/>
+					</xsl:matching-substring>
+				</xsl:analyze-string>
+                <xsl:if test="position()!=last()">
+                    <xsl:text>; </xsl:text>
+                </xsl:if>
+			</xsl:for-each>		
+		
+		</rauteElement>
+	</xsl:template>
+
 
 	<!--veräußerer-->
 	<xsl:template match="z:moduleReference[@name='ObjPerAssociationRef']">
