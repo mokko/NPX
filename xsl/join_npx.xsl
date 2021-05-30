@@ -17,12 +17,12 @@
 	<xsl:template match="/">
 		<xsl:variable name="collection" select="collection('.?select=*.npx.xml')"/>
 		<npx>
-			<xsl:for-each-group select="$collection/n:npx/n:sammlungsobjekt" group-by="n:objId">
-				<xsl:sort select="n:objId"/>
-				<xsl:copy-of select="current-group()[1]"/>
-			</xsl:for-each-group>
 			<xsl:for-each-group select="$collection/n:npx/n:multimediaobjekt" group-by="n:mulId">
 				<xsl:sort select="n:mulId"/>
+				<xsl:copy-of select="current-group()[1]"/>
+			</xsl:for-each-group>
+			<xsl:for-each-group select="$collection/n:npx/n:sammlungsobjekt" group-by="n:objId">
+				<xsl:sort select="n:objId"/>
 				<xsl:copy-of select="current-group()[1]"/>
 			</xsl:for-each-group>
 		</npx>
