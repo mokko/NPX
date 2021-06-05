@@ -33,7 +33,7 @@ import os
 import re
 import shutil
 import sys
-from PIL import Image
+from PIL import Image, ImageFile
 from pathlib import Path
 from lxml import etree
 
@@ -46,6 +46,7 @@ saxon_path = "C:/m3/SaxonHE10-5J/saxon-he-10.5.jar"
 zpx2mpx = "C:/m3/zpx2npx/xsl/zpx2npx.xsl"
 join_npx = "C:/m3/zpx2npx/xsl/join_npx.xsl"
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class Ford:
@@ -78,7 +79,7 @@ class Ford:
                 try:
                     im = Image.open(pic_fn)
                 except:
-                    logging.info("{pic_fn} no pic")
+                    logging.info(f"{pic_fn} no pic")
                 if not pix_target.exists():
                     pix_target.mkdir(parents=True)
                 out_fn = pix_target.joinpath(pic_fn.name)
@@ -87,19 +88,17 @@ class Ford:
                     width, height = im.size
                     if width > 1500 or height > 1500:
                         logging.info(f"{pic_fn} exceeds size: {width} x {height}")
-                        #e.g. 3249 x 2400
                         if width > height:
                             factor = 1500/width
                         else: # height > width or both equal
                             factor = 1500/height
                         new_size = (int(width*factor), int(height*factor))
                         print (f"*resizing {factor} {new_size}")
-                            
-                        out = im.resize(new_size)
+                        im = im.convert("RGB")    
+                        out = im.resize(new_size, Image.LANCZOS)
+                        out.save(out_fn)
                     else:
-                        out = im
-                    out.save(out_fn)
-                    # shutil.copyfile(pic, out)
+                        shutil.copyfile(pic_fn, out_fn)
                     # with ZipFile('spam.zip', 'w') as myzip:
                     #    myzip.write('eggs.txt')
 
