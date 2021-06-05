@@ -23,16 +23,21 @@ parameter.
 USAGE
     ford2.py --date 20210523 --output HFObjekte
  
+TODO: Let's write final version to HF-Export network share to disk space on laptop!
+ 
 """
 
 import argparse
+import logging
 import os
 import re
 import shutil
 import sys
+from PIL import Image
 from pathlib import Path
 from lxml import etree
-#adir = Path(__file__).parent
+
+# adir = Path(__file__).parent
 sys.path.append("C:/m3/Pipeline/src")  # what the heck?
 from Saxon import Saxon
 from lvlup.Npx2csv import Npx2csv
@@ -41,66 +46,124 @@ saxon_path = "C:/m3/SaxonHE10-5J/saxon-he-10.5.jar"
 zpx2mpx = "C:/m3/zpx2npx/xsl/zpx2npx.xsl"
 join_npx = "C:/m3/zpx2npx/xsl/join_npx.xsl"
 
+
+
 class Ford:
     def __init__(self, *, date, output):
-        #e.g. Afrika-Ausstellung-clean-exhibit20226.xml
-        s = Saxon(saxon_path)
-        #print (f"DATE{date}")
+        # e.g. Afrika-Ausstellung-clean-exhibit20226.xml
+        #print (f"__init__DATE{date}")
 
-        #
-        # STEP 1 Convert many small group/exhibit zpx files to same amount of npx files
-        #
+        logfile = Path(output).joinpath("pix.log")
+        logging.basicConfig(
+            filename=logfile, filemode="w", encoding="utf-8", level=logging.INFO
+        )
+
         target_dir = f"{output}/{date}/2-SHF"
-        pix_dirs = set()
-        for file in Path().rglob(f"**/*-clean-*.xml"): 
-            if file.parent.name == date:  
-                #print (f"file: {file}")
-                label = re.match("(.*)-clean-",str(file.name)).group(1)
-                #print (f"LABEL {label}")
-                if label is None:
-                    raise TypeError ("label cannot be none")
-                npx_fn = f"{target_dir}/{label}-clean.npx.xml"
-                s.transform(file, zpx2mpx, npx_fn)
 
-        #
-        # STEP 2 Writing single join/pack file
-        #
+        self.zpx2npx(target_dir=target_dir, date=date)
+        pack_npx = self.packNpx(target_dir=target_dir)
+        self.writeCsv(target_dir=target_dir, pack_npx=pack_npx)
+        self.cpAttachments(target_dir=target_dir, output=output)
+    
+    def cpAttachments(self, *, target_dir, output):
+        """
+            STEP 4 Copy image/attachment files
+            Resizing to longest size 1500 px
+        """
+        print("Copying images")
+        pix_target = Path(target_dir).parent.parent.joinpath("pix")
+        for pic_fn in Path().rglob(f"**/pix_*/*"):
+            # print (f"****{file.parent.parent.name}")
+            if not (pic_fn.parent.name == output):
+                try:
+                    im = Image.open(pic_fn)
+                except:
+                    logging.info("{pic_fn} no pic")
+                if not pix_target.exists():
+                    pix_target.mkdir(parents=True)
+                out_fn = pix_target.joinpath(pic_fn.name)
+                if not out_fn.exists():
+                    print(f"{pic_fn} -> {out_fn}")
+                    width, height = im.size
+                    if width > 1500 or height > 1500:
+                        logging.info(f"{pic_fn} exceeds size: {width} x {height}")
+                        #e.g. 3249 x 2400
+                        if width > height:
+                            factor = 1500/width
+                        else: # height > width or both equal
+                            factor = 1500/height
+                        new_size = (int(width*factor), int(height*factor))
+                        print (f"*resizing {factor} {new_size}")
+                            
+                        out = im.resize(new_size)
+                    else:
+                        out = im
+                    out.save(out_fn)
+                    # shutil.copyfile(pic, out)
+                    # with ZipFile('spam.zip', 'w') as myzip:
+                    #    myzip.write('eggs.txt')
+
+    def packNpx(self, *, target_dir):
+        """
+            STEP 2 
+            
+            Writing single pack file from many small npx files.
+            
+            Looks for many *.npx.xml files in all subdirs
+            Outputs one pack.npx file
+        """
+        s = Saxon(saxon_path)
         pack_npx = Path(f"{target_dir}/pack.npx")
         print(f"About to write join to {pack_npx}")
 
         try:
             first = list(Path().glob(f"{target_dir}/*.npx.xml"))[0]
-        except: raise TypeError ("Join failed!")
-        
+        except:
+            raise TypeError("Join failed!")
+
         s.join(first, join_npx, pack_npx)
+        return pack_npx
 
-        #
-        # STEP 3 Write csv file
-        #
+    def writeCsv(self, *, target_dir, pack_npx):
+        """
+            STEP 3 Write csv file
+        """
 
-        print (f"About to write csv {pack_npx}")
-        Npx2csv (pack_npx, f"{target_dir}/pack")
+        print(f"About to write csv {pack_npx}")
+        Npx2csv(pack_npx, f"{target_dir}/pack")
 
-        #
-        # STEP 4 Copy image/attachment files
-        # ATTENTION: SLOPPY UPDATE
-        print ("Copying images")
-        pix_target = Path(target_dir).parent.parent.joinpath("pix")
-        for pic in Path().rglob(f"**/pix_*/*"):
-            #print (f"****{file.parent.parent.name}")
-            if not (file.parent.name == output):
-                if not pix_target.exists():
-                    pix_target.mkdir(parents=True)
-                out = pix_target.joinpath(pic.name)
-                if not out.exists():
-                    print (f"{pic} -> {out}")
-                    shutil.copyfile(pic, out)
+    def zpx2npx (self, *, target_dir, date):
+        """
+            STEP 1 
+            Convert many small group/exhibit zpx files to same amount of npx files
+
+            Looks for *-clean-*.xml files in ALL subdirs and writes many small 
+            *-clean.npx.xml files.
+        """
+        s = Saxon(saxon_path)
+        pix_dirs = set()
+        for file in Path().rglob(f"**/*-clean-*.xml"):
+            if file.parent.name == date:
+                # print (f"file: {file}")
+                label = re.match("(.*)-clean-", str(file.name)).group(1)
+                # print (f"LABEL {label}")
+                if label is None:
+                    raise TypeError("label cannot be none")
+                npx_fn = f"{target_dir}/{label}-clean.npx.xml"
+                s.transform(file, zpx2mpx, npx_fn)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Automation for SHF chain")
-    parser.add_argument("-d", "--date", required=True, help="Export date you want to pack")
-    parser.add_argument("-o", "--output", required=True, help="Target dir for pack files, e.g. HFObjekte")
+    parser.add_argument(
+        "-d", "--date", required=True, help="Export date you want to pack"
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        help="Target dir for pack files, e.g. HFObjekte",
+    )
     args = parser.parse_args()
 
     Ford(date=args.date, output=args.output)
