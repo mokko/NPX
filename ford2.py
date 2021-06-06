@@ -21,7 +21,7 @@ parameter.
 - Output dir from commandline as well b/c it's easy. Not because that is good design.
 
 USAGE
-    ford2.py --date 20210523 --output HFObjekte
+    ford2.py --date 20210524 --output HFObjekte
  
 TODO: Let's write final version to HF-Export network share to disk space on laptop!
  
@@ -59,7 +59,7 @@ class Ford:
             filename=logfile, filemode="w", encoding="utf-8", level=logging.INFO
         )
 
-        target_dir = f"{output}/{date}/2-SHF"
+        target_dir = Path(output).joinpath(date).joinpath("2-SHF")
 
         self.zpx2npx(target_dir=target_dir, date=date)
         pack_npx = self.packNpx(target_dir=target_dir)
@@ -68,7 +68,7 @@ class Ford:
     
     def cpAttachments(self, *, target_dir, output):
         """
-            STEP 4 Copy image/attachment files
+            STEP 4 : Copy image/attachment files
             Resizing to longest size 1500 px
         """
         print("Copying images")
@@ -104,16 +104,14 @@ class Ford:
 
     def packNpx(self, *, target_dir):
         """
-            STEP 2 
-            
-            Writing single pack file from many small npx files.
+            STEP 2 : Writing single pack file from many small npx files.
             
             Looks for many *.npx.xml files in all subdirs
             Outputs one pack.npx file
         """
         s = Saxon(saxon_path)
-        pack_npx = Path(f"{target_dir}/pack.npx")
-        print(f"About to write join to {pack_npx}")
+        pack_npx = Path(target_dir).joinpath("pack.npx")
+        print(f"About to write join to {str(pack_npx)}")
 
         try:
             first = list(Path().glob(f"{target_dir}/*.npx.xml"))[0]
@@ -125,16 +123,15 @@ class Ford:
 
     def writeCsv(self, *, target_dir, pack_npx):
         """
-            STEP 3 Write csv file
+            STEP 3 : Write csv file
         """
 
         print(f"About to write csv {pack_npx}")
-        Npx2csv(pack_npx, f"{target_dir}/pack")
+        Npx2csv(pack_npx, target_dir.joinpath("pack"))
 
     def zpx2npx (self, *, target_dir, date):
         """
-            STEP 1 
-            Convert many small group/exhibit zpx files to same amount of npx files
+            STEP 1 : Convert many small group/exhibit zpx files to same amount of npx files
 
             Looks for *-clean-*.xml files in ALL subdirs and writes many small 
             *-clean.npx.xml files.
@@ -148,7 +145,7 @@ class Ford:
                 # print (f"LABEL {label}")
                 if label is None:
                     raise TypeError("label cannot be none")
-                npx_fn = f"{target_dir}/{label}-clean.npx.xml"
+                npx_fn = target_dir.joinpath(f"{label}-clean.npx.xml")
                 s.transform(file, zpx2mpx, npx_fn)
 
 
