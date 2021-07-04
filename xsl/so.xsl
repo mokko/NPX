@@ -45,6 +45,8 @@
 			</bereich>
 			<!--beteiligte-->
 			<xsl:apply-templates select="z:moduleReference[@name='ObjPerAssociationRef' and @targetModule ='Person']"/> 
+			<!-- credits-->
+			<xsl:apply-templates select="z:vocabularyReference[@name='ObjCreditLineVoc']"/> 
 			<!--datierung-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjDateGrp']"/> 
 			<!--erwerbDatum-->
@@ -75,7 +77,6 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjTextOnlineGrp']"/>
 			<!--rauteElement-->
 			<xsl:apply-templates select="z:moduleReference[@name='ObjObjectGroupsRef']"/>
-			
 
 			<!-- todo multiple sachbegriffe-->
 			<sachbegriff>
@@ -133,6 +134,16 @@
 			</xsl:for-each>		
 		</beteiligte>
 	</xsl:template>
+
+	<!-- credits-->
+	<xsl:template match="z:vocabularyReference[@name='ObjCreditLineVoc']">
+		<xsl:message>
+			sdsd
+		</xsl:message>
+		<credits>
+			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
+		</credits>
+	</xsl:template>	
 
 	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionDateGrp']">
 		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
