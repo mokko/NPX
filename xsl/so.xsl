@@ -16,7 +16,7 @@
 			<!-- anzahlTeile-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjNumberObjectsGrp']"/>
 
-			<!-- ausstellung -->
+			<!-- ausstellung !!Funktioniert bei altem Export nicht!! -->
 			<ausstellung>
 				<xsl:for-each select="/z:application/z:modules/z:module[
 					@name = 'Exhibition']/z:moduleItem[1]/z:repeatableGroup[
@@ -56,7 +56,7 @@
 			<!--erwerbVon
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
 			-->
-			<!--erwerbNotizAusgabe-->
+			<!--erwerbNotizAusgabe TODO: Ausgabe noch nicht implementiert -->
 			<xsl:apply-templates select="z:repeatableGroup[
 				@name='ObjAcquisitionNotesGrp' and 
 				./z:repeatableGroupItem/z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Notiz'
@@ -88,7 +88,7 @@
 				Cornelia möchte lieber alle Standorte auf einmal und so lange leere Felder.
 				Hier werden nur definitive aktuelle Standorte ausgegeben, keine historischen.
 			-->
-			<standortAktuell/>
+			<standortAktuellHf/>
 			<!--titel-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectTitleGrp']"/>
 
@@ -137,9 +137,6 @@
 
 	<!-- credits-->
 	<xsl:template match="z:vocabularyReference[@name='ObjCreditLineVoc']">
-		<xsl:message>
-			sdsd
-		</xsl:message>
 		<credits>
 			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
 		</credits>
@@ -295,13 +292,20 @@
 		</onlineBeschreibung>
 	</xsl:template>
 
-	<!--	EM-ME HUF-E39040# -->
+	<!-- 
+		rauteElement, e.g.
+		EM-ME HUF-E39040# 
+	-->
 	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
 		<rauteElement>
 			<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
-				<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d*)#">
+				<xsl:message>
+					<xsl:value-of select="z:formattedValue"/>
+				</xsl:message>
+				<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d+)(.*)#">
 					<xsl:matching-substring>
 						<xsl:value-of select="regex-group(1)"/>
+						<xsl:value-of select="regex-group(2)"/>
 					</xsl:matching-substring>
 				</xsl:analyze-string>
                 <xsl:if test="position()!=last()">
