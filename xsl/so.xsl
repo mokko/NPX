@@ -299,9 +299,6 @@
 	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
 		<rauteElement>
 			<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
-				<xsl:message>
-					<xsl:value-of select="z:formattedValue"/>
-				</xsl:message>
 				<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d+)(.*)#">
 					<xsl:matching-substring>
 						<xsl:value-of select="regex-group(1)"/>
