@@ -81,7 +81,13 @@
 			<sachbegriff>
 				<xsl:value-of select="z:dataField[@name='ObjTechnicalTermClb']/z:value"/>
 			</sachbegriff>
-			
+
+			<!-- 
+				Aus Sicherheitsgründen sollen nur Standorte aus HF Ausstellungen an SHF übergeben werden. 
+				Cornelia möchte lieber alle Standorte auf einmal und so lange leere Felder.
+				Hier werden nur definitive aktuelle Standorte ausgegeben, keine historischen.
+			-->
+			<standortAktuell/>
 			<!--titel-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectTitleGrp']"/>
 

@@ -20,13 +20,21 @@
 			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulColorVoc']"/>
 			<!--freigabe-->
 			<xsl:apply-templates select="z:repeatableGroup[@name = 'MulApprovalGrp']"/>
-			<!--function-->
+			<!--funktion-->
 			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulCategoryVoc']"/>
 			<!--inhaltAnsicht-->
-			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulSubjectTxt']"/>
+			<xsl:apply-templates select="z:dataField[@name = 'MulSubjectTxt']"/>
 			<mulId>
 				<xsl:value-of select="@id"/>
 			</mulId>
+			<sort>
+				<xsl:value-of select="z:composite[@name='MulReferencesCre']/z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[@name='SortLnu']/z:value"/>
+			</sort>
+			<xsl:if test="z:composite[@name='MulReferencesCre']/z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField/z:value = 'true'">
+				<standardbild>
+					<xsl:value-of select="z:composite[@name='MulReferencesCre']/z:compositeItem/z:moduleReference/z:moduleReferenceItem/@moduleItemId"/>
+				</standardbild>
+			</xsl:if>
 			<!-- Typ -->
 			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulTypeVoc']"/>
 			<!-- urhebFotograf -->
@@ -76,12 +84,12 @@
 	</xsl:template>
 
 	<xsl:template match="z:vocabularyReference[@name = 'MulCategoryVoc']">
-		<function>
+		<funktion>
 			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
-		</function>
+		</funktion>
 	</xsl:template>
 
-	<xsl:template match="z:vocabularyReference[@name = 'MulSubjectTxt']">
+	<xsl:template match="z:dataField[@name = 'MulSubjectTxt']">
 		<inhaltAnsicht>
 			<xsl:value-of select="z:value"/>
 		</inhaltAnsicht>
