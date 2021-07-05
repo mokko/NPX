@@ -88,7 +88,11 @@
 				Cornelia möchte lieber alle Standorte auf einmal und so lange leere Felder.
 				Hier werden nur definitive aktuelle Standorte ausgegeben, keine historischen.
 			-->
-			<standortAktuellHf/>
+			<standortAktuellHf>
+				<xsl:if test="starts-with(z:vocabularyReference[@name='ObjNormalLocationVoc']/z:vocabularyReferenceItem/@name, 'HUF##')">
+					<xsl:value-of select="z:vocabularyReference[@name='ObjNormalLocationVoc']/z:vocabularyReferenceItem/@name"/>
+				</xsl:if>
+			</standortAktuellHf>
 			<!--titel-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectTitleGrp']"/>
 
@@ -231,8 +235,7 @@
 				<xsl:if test="len &gt; 1">
 					<xsl:call-template name="sortQ"/> 
 				</xsl:if>
-				<xsl:value-of select="z:virtualField[@name='NumberVrt']"/>
-
+				<xsl:value-of select="z:dataField[@name='InventarNrSTxt']"/>
                 <xsl:if test="position()!=last()">
                     <xsl:text>; </xsl:text>
                 </xsl:if>
@@ -328,5 +331,4 @@
 			</titel>
 		</xsl:if>
 	</xsl:template>
-
 </xsl:stylesheet>
