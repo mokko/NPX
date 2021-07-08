@@ -65,6 +65,13 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjGeograficGrp']"/>
 			<!-- identNr-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectNumberGrp']"/>
+			<!-- ikonografie -->
+			<xsl:apply-templates select="z:repeatableGroup[@name='ObjIconographyGrp']"/>
+
+			<ikonografieKurz>
+				<xsl:message>xxxxxxxxxxxxxxxxxxxxxxxxxxx</xsl:message>
+				<xsl:value-of select="z:dataField[@name='ObjIconographyContentBriefClb']/z:value"/>
+			</ikonografieKurz>
 			<!--maße -->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjDimAllGrp']"/>
 			<!--materialTechnik-->
@@ -244,6 +251,13 @@
 			</xsl:for-each>		
 		</identNr>
 	</xsl:template>
+
+	<!-- ikonografie -->
+	<xsl:template match="z:repeatableGroup[@name='ObjIconographyGrp']">
+		<ikonografieEM>
+			<xsl:value-of select="z:repeatableGroupItem/@id"/>
+		</ikonografieEM>
+	</xsl:template> 
 
 	<xsl:template match="z:repeatableGroup[@name='ObjDimAllGrp']">
 		<maße>

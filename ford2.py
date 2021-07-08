@@ -70,11 +70,13 @@ class Ford:
         """
             STEP 4 : Copy image/attachment files
             Resizing to longest size 1500 px
+            Biggest png that I've found so far is 1848.
+            3 Wege wants origname with longest side 1848.
         """
         print("Copying images")
         pix_target = Path(target_dir).parent.parent.joinpath("pix")
         for pic_fn in Path().rglob(f"**/pix_*/*"):
-            # print (f"****{file.parent.parent.name}")
+            print (f"****{pic_fn}")
             if not (pic_fn.parent.name == output):
                 try:
                     im = Image.open(pic_fn)
