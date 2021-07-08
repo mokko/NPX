@@ -75,6 +75,8 @@
 			</objId>
 			<!-- onlineBeschreibung -->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjTextOnlineGrp']"/>
+			<!-- oov -->
+			<xsl:apply-templates select="z:composite[@name='ObjObjectCre']"/>
 			<!--rauteElement-->
 			<xsl:apply-templates select="z:moduleReference[@name='ObjObjectGroupsRef']"/>
 
@@ -295,6 +297,25 @@
 		</onlineBeschreibung>
 	</xsl:template>
 
+	<xsl:template match="z:composite[@name='ObjObjectCre']">
+		<oov>
+			<xsl:for-each select="z:compositeItem/z:moduleReference/z:moduleReferenceItem">
+				<xsl:text>[</xsl:text>
+				<xsl:value-of select="@moduleItemId"/>
+				<xsl:text>] </xsl:text>
+				<xsl:value-of select="z:formattedValue"/>
+				<xsl:text> [</xsl:text>
+				<xsl:value-of select="z:vocabularyReference[name='TypeAVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+				<xsl:text>] </xsl:text>
+				<xsl:text>[</xsl:text>
+				<xsl:value-of select="z:vocabularyReference[name='TypeBVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+				<xsl:text>]</xsl:text>
+                <xsl:if test="position()!=last()">
+                    <xsl:text>; </xsl:text>
+                </xsl:if>
+			</xsl:for-each>
+		</oov>
+	</xsl:template>
 	<!-- 
 		rauteElement, e.g.
 		EM-ME HUF-E39040# 
