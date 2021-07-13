@@ -336,7 +336,8 @@
 	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
 		<rauteElement>
 			<xsl:choose>
-				<xsl:when test="z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem">
+				<xsl:when test="../z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem">
+					<!--xsl:message>EM</xsl:message-->
 					<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
 						<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d+)(.*)#">
 							<xsl:matching-substring>
