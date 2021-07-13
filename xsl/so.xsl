@@ -69,7 +69,6 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjIconographyGrp']"/>
 
 			<ikonografieKurz>
-				<xsl:message>xxxxxxxxxxxxxxxxxxxxxxxxxxx</xsl:message>
 				<xsl:value-of select="z:dataField[@name='ObjIconographyContentBriefClb']/z:value"/>
 			</ikonografieKurz>
 			<!--maße -->
@@ -336,17 +335,33 @@
 	-->
 	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
 		<rauteElement>
-			<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
-				<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d+)(.*)#">
-					<xsl:matching-substring>
-						<xsl:value-of select="regex-group(1)"/>
-						<xsl:value-of select="regex-group(2)"/>
-					</xsl:matching-substring>
-				</xsl:analyze-string>
-                <xsl:if test="position()!=last()">
-                    <xsl:text>; </xsl:text>
-                </xsl:if>
-			</xsl:for-each>		
+			<xsl:choose>
+				<xsl:when test="z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem">
+					<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
+						<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d+)(.*)#">
+							<xsl:matching-substring>
+								<xsl:value-of select="regex-group(1)"/>
+								<xsl:value-of select="regex-group(2)"/>
+							</xsl:matching-substring>
+						</xsl:analyze-string>
+						<xsl:if test="position()!=last()">
+							<xsl:text>; </xsl:text>
+						</xsl:if>
+					</xsl:for-each>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:for-each select="z:moduleReferenceItem[starts-with (z:formattedValue, 'HUFO - ')]">
+						<xsl:analyze-string select="z:formattedValue" regex="- (E\d+) - ">
+							<xsl:matching-substring>
+								<xsl:value-of select="regex-group(1)"/>
+							</xsl:matching-substring>
+						</xsl:analyze-string>
+						<xsl:if test="position()!=last()">
+							<xsl:text>; </xsl:text>
+						</xsl:if>
+					</xsl:for-each>
+				</xsl:otherwise>
+			</xsl:choose>
 		</rauteElement>
 	</xsl:template>
 
