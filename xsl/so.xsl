@@ -339,7 +339,7 @@
 				<xsl:when test="../z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem">
 					<!--xsl:message>EM</xsl:message-->
 					<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
-						<xsl:analyze-string select="z:formattedValue" regex="HUF-(E\d+)(.*)#">
+						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ](E\d+)(.*)#">
 							<xsl:matching-substring>
 								<xsl:value-of select="regex-group(1)"/>
 								<xsl:value-of select="regex-group(2)"/>
