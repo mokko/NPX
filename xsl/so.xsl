@@ -254,7 +254,12 @@
 	<!-- ikonografie -->
 	<xsl:template match="z:repeatableGroup[@name='ObjIconographyGrp']">
 		<ikonografieEM>
-			<xsl:value-of select="z:repeatableGroupItem/@id"/>
+			<xsl:for-each select="z:repeatableGroupItem/@id">
+				<xsl:value-of select="."/>
+                <xsl:if test="position()!=last()">
+                    <xsl:text>; </xsl:text>
+                </xsl:if>
+			</xsl:for-each>
 		</ikonografieEM>
 	</xsl:template> 
 
@@ -331,39 +336,59 @@
 	</xsl:template>
 	<!-- 
 		rauteElement, e.g.
-		EM-ME HUF-E39040# 
+		'HUF-E39040#' in EM 
+		'HUFO - E12345 -' in AKU
+		RA wird keine Element-Nr
 	-->
 	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
 		<rauteElement>
-			<xsl:choose>
-				<xsl:when test="../z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem">
-					<!--xsl:message>EM</xsl:message-->
-					<xsl:for-each select="z:moduleReferenceItem[contains (z:formattedValue, '#')]">
+			<xsl:for-each select="z:moduleReferenceItem">
+				<xsl:choose>
+					<xsl:when test="z:formattedValue[contains (., '#')]">
 						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ](E\d+)(.*)#">
 							<xsl:matching-substring>
 								<xsl:value-of select="regex-group(1)"/>
 								<xsl:value-of select="regex-group(2)"/>
 							</xsl:matching-substring>
 						</xsl:analyze-string>
-						<xsl:if test="position()!=last()">
-							<xsl:text>; </xsl:text>
-						</xsl:if>
-					</xsl:for-each>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:for-each select="z:moduleReferenceItem[starts-with (z:formattedValue, 'HUFO - ')]">
+					</xsl:when>
+					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - ')]">
 						<xsl:analyze-string select="z:formattedValue" regex="- (E\d+) - ">
 							<xsl:matching-substring>
 								<xsl:value-of select="regex-group(1)"/>
 							</xsl:matching-substring>
 						</xsl:analyze-string>
-						<xsl:if test="position()!=last()">
-							<xsl:text>; </xsl:text>
-						</xsl:if>
-					</xsl:for-each>
-				</xsl:otherwise>
-			</xsl:choose>
+					</xsl:when>
+				</xsl:choose>
+			</xsl:for-each>
 		</rauteElement>
+		<rauteModul>
+			<xsl:for-each select="z:moduleReferenceItem">
+				<xsl:choose>
+					<xsl:when test="z:formattedValue[contains (., '#')]">
+						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ]E(\d\d)(.*)#">
+							<xsl:matching-substring>
+								<xsl:value-of select="regex-group(1)"/>
+							</xsl:matching-substring>
+						</xsl:analyze-string>
+					</xsl:when>
+					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - E')]">
+						<xsl:analyze-string select="z:formattedValue" regex="HUFO - E(\d\d)\d* - ">
+							<xsl:matching-substring>
+								<xsl:value-of select="regex-group(1)"/>
+							</xsl:matching-substring>
+						</xsl:analyze-string>
+					</xsl:when>
+					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - RA')]">
+						<xsl:analyze-string select="z:formattedValue" regex="Modul (\d\d)">
+							<xsl:matching-substring>
+								<xsl:value-of select="regex-group(1)"/>
+							</xsl:matching-substring>
+						</xsl:analyze-string>
+					</xsl:when>
+				</xsl:choose>
+			</xsl:for-each>
+		</rauteModul>
 	</xsl:template>
 
 	<!-- titel -->
