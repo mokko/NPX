@@ -45,6 +45,7 @@ from lvlup.Npx2csv import Npx2csv
 saxon_path = "C:/m3/SaxonHE10-5J/saxon-he-10.5.jar"
 zpx2mpx = "C:/m3/zpx2npx/xsl/zpx2npx.xsl"
 join_npx = "C:/m3/zpx2npx/xsl/join_npx.xsl"
+split_npx = "C:/m3/zpx2npx/xsl/splitPack.xsl"
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -63,7 +64,11 @@ class Ford:
 
         self.zpx2npx(target_dir=target_dir, date=date)
         pack_npx = self.packNpx(target_dir=target_dir)
-        self.writeCsv(target_dir=target_dir, pack_npx=pack_npx)
+        self.splitPack(in_fn=pack_npx, target_dir=target_dir)
+        
+        eö_fn = target_dir.joinpath ("eröffnet.npx.xml")
+        self.eö = etree.parse(str(eö_fn))
+        self.writeCsv(target_dir=target_dir, source_npx=eö_fn)
         self.cpAttachments(target_dir=target_dir, output=output)
     
     def cpAttachments(self, *, target_dir, output):
@@ -77,32 +82,47 @@ class Ford:
         pix_target = Path(target_dir).parent.parent.joinpath("pix")
         for pic_fn in Path().rglob(f"**/pix_*/*"):
             #print (f"****{pic_fn}")
-            if not (pic_fn.parent.name == output):
-                try:
-                    im = Image.open(pic_fn)
-                except:
-                    logging.info(f"{pic_fn} no pic")
-                if not pix_target.exists():
-                    pix_target.mkdir(parents=True)
-                out_fn = pix_target.joinpath(pic_fn.name)
-                if not out_fn.exists():
-                    print(f"{pic_fn} -> {out_fn}")
-                    width, height = im.size
-                    if width > 1500 or height > 1500:
-                        logging.info(f"{pic_fn} exceeds size: {width} x {height}")
-                        if width > height:
-                            factor = 1500/width
-                        else: # height > width or both equal
-                            factor = 1500/height
-                        new_size = (int(width*factor), int(height*factor))
-                        print (f"*resizing {factor} {new_size}")
-                        im = im.convert("RGB")    
-                        out = im.resize(new_size, Image.LANCZOS)
-                        out.save(out_fn)
-                    else:
-                        shutil.copyfile(pic_fn, out_fn)
-                    # with ZipFile('spam.zip', 'w') as myzip:
-                    #    myzip.write('eggs.txt')
+            if pic_fn.suffix != ".mp3": #pil croaks over mp3
+                if self.inEö(fn=pic_fn.name):
+                    if not (pic_fn.parent.name == output):
+                        try:
+                            im = Image.open(pic_fn)
+                        except:
+                            logging.info(f"{pic_fn} no pic")
+                        if not pix_target.exists():
+                            pix_target.mkdir(parents=True)
+                        out_fn = pix_target.joinpath(pic_fn.name)
+                        if not out_fn.exists():
+                            print(f"{pic_fn} -> {out_fn}")
+                            width, height = im.size
+                            if width > 1848 or height > 1848:
+                                logging.info(f"{pic_fn} exceeds size: {width} x {height}")
+                                if width > height:
+                                    factor = 1848/width
+                                else: # height > width or both equal
+                                    factor = 1848/height
+                                new_size = (int(width*factor), int(height*factor))
+                                print (f"*resizing {factor} {new_size}")
+                                im = im.convert("RGB")    
+                                out = im.resize(new_size, Image.LANCZOS)
+                                out.save(out_fn)
+                            else:
+                                shutil.copyfile(pic_fn, out_fn)
+                            # with ZipFile('spam.zip', 'w') as myzip:
+                            #    myzip.write('eggs.txt')
+
+    def inEö (self, *, fn):
+        """
+        Tests if given filename fn is in the set of already opened exhibits (eröffnet).
+        Returns True if fn exists, else False.
+        """        
+        #print (f"***fn {fn}")
+        r = self.eö.xpath(f"/n:npx/n:multimediaobjekt[n:dateinameNeu= '{fn}']", namespaces={"n": "http://www.mpx.org/npx"})
+        #print (r)
+        if r:
+            return True
+        else:   
+            return False
 
     def packNpx(self, *, target_dir):
         """
@@ -123,13 +143,23 @@ class Ford:
         s.join(first, join_npx, pack_npx)
         return pack_npx
 
-    def writeCsv(self, *, target_dir, pack_npx):
+    def splitPack (self, *, in_fn, target_dir):
+        s = Saxon(saxon_path)
+        #print (f"TARGET_DIR: {target_dir}")
+        if not target_dir.joinpath("eröffnet.npx.xml").exists:
+            s.transform(in_fn, split_npx, "o.xml")
+            #quick and dirty
+            shutil.move("eröffnet.npx.xml", target_dir)
+            shutil.move("nichtEröffnet.npx.xml", target_dir)
+            shutil.move("nichtZugeordnet.npx.xml", target_dir)
+
+    def writeCsv(self, *, target_dir, source_npx):
         """
             STEP 3 : Write csv file
         """
 
-        print(f"About to write csv {pack_npx}")
-        Npx2csv(pack_npx, target_dir.joinpath("pack"))
+        print(f"About to write csv {source_npx}")
+        Npx2csv(source_npx, target_dir.joinpath("eö"))
 
     def zpx2npx (self, *, target_dir, date):
         """
@@ -149,8 +179,8 @@ class Ford:
                     raise TypeError("label cannot be none")
                 npx_fn = target_dir.joinpath(f"{label}-clean.npx.xml")
                 s.transform(file, zpx2mpx, npx_fn)
-
-
+       
+        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Automation for SHF chain")
     parser.add_argument(
@@ -165,3 +195,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     Ford(date=args.date, output=args.output)
+    
