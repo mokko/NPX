@@ -339,13 +339,15 @@
 		'HUF-E39040#' in EM 
 		'HUFO - E12345 -' in AKU
 		RA wird keine Element-Nr
+		
+		rauteElement and rauteModul can be empty (against my usual habit)
 	-->
 	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
 		<rauteElement>
 			<xsl:for-each select="z:moduleReferenceItem">
 				<xsl:choose>
 					<xsl:when test="z:formattedValue[contains (., '#')]">
-						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ](E\d+)(.*)#">
+						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ](E\d\d\d\d\d)(.*)#">
 							<xsl:matching-substring>
 								<xsl:value-of select="regex-group(1)"/>
 								<xsl:value-of select="regex-group(2)"/>
@@ -365,8 +367,11 @@
 		<rauteModul>
 			<xsl:for-each select="z:moduleReferenceItem">
 				<xsl:choose>
-					<xsl:when test="z:formattedValue[contains (., '#')]">
-						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ]E(\d\d)(.*)#">
+					<xsl:when test="z:formattedValue[contains (., '#') and 
+						starts-with (., 'EM') and
+						contains (., 'HUF')
+						]">
+						<xsl:analyze-string select="z:formattedValue" regex="E(\d\d)">
 							<xsl:matching-substring>
 								<xsl:value-of select="regex-group(1)"/>
 							</xsl:matching-substring>

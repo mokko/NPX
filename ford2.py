@@ -146,7 +146,9 @@ class Ford:
     def splitPack (self, *, in_fn, target_dir):
         s = Saxon(saxon_path)
         #print (f"TARGET_DIR: {target_dir}")
-        if not target_dir.joinpath("eröffnet.npx.xml").exists:
+        eö_fn = target_dir.joinpath("eröffnet.npx.xml")
+        print ("About to SPLIT PACK if necessary")
+        if not eö_fn.exists():
             s.transform(in_fn, split_npx, "o.xml")
             #quick and dirty
             shutil.move("eröffnet.npx.xml", target_dir)
