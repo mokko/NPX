@@ -35,26 +35,46 @@
 			n:rauteModul eq '60' or
 			n:rauteModul eq '61' or
 			n:rauteModul eq '62']/n:objId"/>
+		<xsl:variable name="nEöIds" select="n:npx/n:sammlungsobjekt[not(n:objId = $eöIds or n:objId = $nzIds)]/n:objId"/>
+		<xsl:message>
+			<xsl:text>Sammlungsobjekte gesamt: </xsl:text>
+			<xsl:value-of select="count(n:npx/n:sammlungsobjekt/n:objId)"/>
+			<xsl:text>&#10;Sammlungsobjekte eröffnet: </xsl:text>
+			<xsl:value-of select="count($eöIds)"/>
+			<xsl:text>&#10;Sammlungsobjekte nicht eröffnet: </xsl:text>
+			<xsl:value-of select="count($nEöIds)"/>
+			<xsl:text>&#10;Sammlungsobjekte nicht zugeordnet: </xsl:text>
+			<xsl:value-of select="count($nzIds)"/>
+			<xsl:text>&#10;Summe Sammlungsobjekte der Pakate: </xsl:text>
+			<xsl:value-of select="count($eöIds) + count($nEöIds) + count($nzIds)"/>
+			<xsl:text>&#10;</xsl:text>
+		</xsl:message>
+			
 		<xsl:result-document method="xml" href="nichtZugeordnet.npx.xml">
 			<npx>
+				<xsl:attribute name="anzahlSammlungsobjekte">
+					<xsl:value-of select="count($nzIds)"/>
+				</xsl:attribute>
 				<xsl:copy-of select="n:npx/n:multimediaobjekt[n:verknüpftesObjekt = $nzIds]"/>
 				<xsl:copy-of select="n:npx/n:sammlungsobjekt[n:objId = $nzIds]"/>
 			</npx>
 		</xsl:result-document>
 		<xsl:result-document method="xml" href="eröffnet.npx.xml">
 			<npx>
+				<xsl:attribute name="anzahlSammlungsobjekte">
+					<xsl:value-of select="count($eöIds)"/>
+				</xsl:attribute>
 				<xsl:copy-of select="n:npx/n:multimediaobjekt[n:verknüpftesObjekt = $eöIds]"/>
 				<xsl:copy-of select="n:npx/n:sammlungsobjekt[n:objId = $eöIds]"/>
 			</npx>
 		</xsl:result-document>
 		<xsl:result-document method="xml" href="nichtEröffnet.npx.xml">
 			<npx>
-				<xsl:copy-of select="n:npx/n:multimediaobjekt[
-					not(n:verknüpftesObjekt = $eöIds) and 
-					not(n:verknüpftesObjekt = $nzIds)]"/>
-				<xsl:copy-of select="n:npx/n:sammlungsobjekt[
-					not(n:objId = $eöIds) and 
-					not (n:objId = $nzIds)]"/>
+				<xsl:attribute name="anzahlSammlungsobjekte">
+					<xsl:value-of select="count($nEöIds)"/>
+				</xsl:attribute>
+				<xsl:copy-of select="n:npx/n:multimediaobjekt[n:verknüpftesObjekt = $nEöIds]"/>
+				<xsl:copy-of select="n:npx/n:sammlungsobjekt[n:objId = $nEöIds]"/>
 			</npx>
 		</xsl:result-document>
 	</xsl:template>
