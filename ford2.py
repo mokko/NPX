@@ -80,9 +80,9 @@ class Ford:
         #4th: split superpack
         self.transform(src=fixFn, xsl="splitPack.xsl", out="4-o.xml")
         #5th: convert eröffnet only to csv
-        self.writeCsv(src="eröffnet.npx.xml")
+        self.writeCsv(src="4-eröffnet.npx.xml")
         #6th write htmlList
-        self.transform(src="eröffnet.npx.xml", xsl="ListeFreigegebeneDigitalisate.xsl", out="ListeFreigegebeneDigitalisate.html")
+        self.transform(src="4-eröffnet.npx.xml", xsl="ListeFreigegebeneDigitalisate.xsl", out="6-ListeFreigegebeneDigitalisate.html")
         #7th convert and copy freigebene attachments
         self.cpAttachments(output=output)
     
@@ -200,7 +200,7 @@ class Ford:
         #self.eö = etree.parse(str(fn))
 
         print(f"About to write csv from {fn}")
-        Npx2csv(fn, self.targetDir.joinpath("eö"))
+        Npx2csv(fn, self.targetDir.joinpath("5-eö"))
 
     def zpx2npx (self, *, date, outDir):
         """

@@ -50,7 +50,7 @@
 			<xsl:text>&#10;</xsl:text>
 		</xsl:message>
 			
-		<xsl:result-document method="xml" href="nichtZugeordnet.npx.xml">
+		<xsl:result-document method="xml" href="4-nichtZugeordnet.npx.xml">
 			<npx>
 				<xsl:attribute name="anzahlSammlungsobjekte">
 					<xsl:value-of select="count($nzIds)"/>
@@ -59,7 +59,7 @@
 				<xsl:copy-of select="n:npx/n:sammlungsobjekt[n:objId = $nzIds]"/>
 			</npx>
 		</xsl:result-document>
-		<xsl:result-document method="xml" href="eröffnet.npx.xml">
+		<xsl:result-document method="xml" href="4-eröffnet.npx.xml">
 			<npx>
 				<xsl:attribute name="anzahlSammlungsobjekte">
 					<xsl:value-of select="count($eöIds)"/>
@@ -68,7 +68,7 @@
 				<xsl:copy-of select="n:npx/n:sammlungsobjekt[n:objId = $eöIds]"/>
 			</npx>
 		</xsl:result-document>
-		<xsl:result-document method="xml" href="nichtEröffnet.npx.xml">
+		<xsl:result-document method="xml" href="4-nichtEröffnet.npx.xml">
 			<npx>
 				<xsl:attribute name="anzahlSammlungsobjekte">
 					<xsl:value-of select="count($nEöIds)"/>
