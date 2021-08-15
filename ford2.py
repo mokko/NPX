@@ -83,7 +83,7 @@ class Ford:
         self.writeCsv(src="4-eröffnet.npx.xml")
         #6th write htmlList
         self.transform(src="4-eröffnet.npx.xml", xsl="ListeFreigegebeneDigitalisate.xsl", out="6-ListeFreigegebeneDigitalisate.html")
-        #7th convert and copy freigebene attachments
+        #7th convert and copy freigebene attachments from eröffnet.npx
         self.cpAttachments(output=output)
     
     def transform (self,*, src, xsl, out):
@@ -179,18 +179,6 @@ class Ford:
 
         s.join(first, xslDir.joinpath("join_npx.xsl"), outFn)
         return outFn
-
-    def splitPack (self, *, in_fn, targetDir):
-        s = Saxon(saxon_path)
-        #print (f"TARGET_DIR: {targetDir}")
-        eö_fn = targetDir.joinpath("eröffnet.npx.xml")
-        print ("About to SPLIT PACK if necessary")
-        if not eö_fn.exists():
-            s.transform(in_fn, split_npx, "o.xml")
-            #quick and dirty
-            shutil.move("eröffnet.npx.xml", targetDir)
-            shutil.move("nichtEröffnet.npx.xml", targetDir)
-            shutil.move("nichtZugeordnet.npx.xml", targetDir)
 
     def writeCsv(self, *, src):
         """
