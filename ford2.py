@@ -116,7 +116,7 @@ class Ford:
         pixDir = self.targetDir.parent.joinpath("pix")
         if not pixDir.exists():
             pixDir.mkdir(parents=True)
-        print("Copying images to {pixDir}, if necessary")
+        print(f"Copying images to {pixDir}, if necessary")
         for pic_fn in Path().rglob(f"**/pix_*/*"):
             #print (f"****{pic_fn}")
             if pic_fn.suffix != ".mp3": #pil croaks over mp3
@@ -152,7 +152,7 @@ class Ford:
         Returns True if fn exists, else False.
         """        
         if not hasattr(self, "eö"):
-            eöFn = self.targetDir.joinpath("eröffnet.npx.xml")
+            eöFn = self.targetDir.joinpath("4-eröffnet.npx.xml")
             self.eö = etree.parse(str(eöFn))
         r = self.eö.xpath(f"/n:npx/n:multimediaobjekt[n:dateinameNeu= '{fn}']", namespaces={"n": "http://www.mpx.org/npx"})
         #print (r)

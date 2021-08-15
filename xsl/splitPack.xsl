@@ -45,7 +45,7 @@
 			<xsl:value-of select="count($nEöIds)"/>
 			<xsl:text>&#10;Sammlungsobjekte nicht zugeordnet: </xsl:text>
 			<xsl:value-of select="count($nzIds)"/>
-			<xsl:text>&#10;Summe Sammlungsobjekte der Pakate: </xsl:text>
+			<xsl:text>&#10;Summe Sammlungsobjekte der Pakete: </xsl:text>
 			<xsl:value-of select="count($eöIds) + count($nEöIds) + count($nzIds)"/>
 			<xsl:text>&#10;</xsl:text>
 		</xsl:message>
