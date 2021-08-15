@@ -10,7 +10,7 @@
 
 	<!-- 
 		input and output format is both npx 
-		we join input *.xml files in target dir and join them together join.npx
+		we join input *.npx.xml files in target dir and join them together join.npx
 		making sure that there are no duplicates (multiple records with same id)
 	-->
 	
