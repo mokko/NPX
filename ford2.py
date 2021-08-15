@@ -1,9 +1,17 @@
 """
-A "conveyor belt" to turn convert output of MpApi into the exchange format of the SHF
+A "conveyor belt" to convert output of MpApi into the SHF exchange format; i.e. the conveyor belt
+multiple steps, typically a series of xslt transformations.
 
-This little script is supposed to grow with time and has been doing so since May 2021.
+Input: scans pwd and looks for {date}/*-clean-*.xml wth the specified date
+Writes many output files, typically for every step one
 
-We want to send SHF the least amount of packages possible
+Design Considerations
+* This little script is supposed to grow with time and has been doing so since May 2021; perhaps eventually
+  we'll use pipeline again.
+* We want to send SHF the least amount of packages (files) possible
+* Don't overwrite files already written by a previous iteration; if user wants an overwrite, they have to
+  delete files manually.
+* Number output files by step
 
 #input
 sdata/HF-AKu-Module/20210521
