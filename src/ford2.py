@@ -55,11 +55,11 @@ sys.path.append("C:/m3/Pipeline/src")
 from Saxon import Saxon
 from lvlup.Npx2csv import Npx2csv
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-xslDir = Path(__file__).parent.joinpath("xsl")
-
+xslDir = Path(__file__).parent.parent.joinpath("xsl")
+outDir = Path(__file__).parent.parent.joinpath("sdata")
 
 class Ford:
-    def __init__(self, *, date, output):
+    def __init__(self, *, date, output, split):
         # e.g. Afrika-Ausstellung-clean-exhibit20226.xml
         #print (f"__init__DATE{date}")
 
@@ -70,19 +70,25 @@ class Ford:
         logging.basicConfig(
             filename=logfile, filemode="w", encoding="utf-8", level=logging.INFO
         )
-        self.targetDir = Path(output).joinpath(date) # output should be "SHF"
+        self.targetDir = outDir.joinpath(output).joinpath(date) 
         #1st: convert packs to individual npx
         self.zpx2npx(date=date, outDir="1-packs") # 
         #2nd: join superpack 
         packNpx = self.joinPack(inDir="1-packs", out="2-superpack.npx.xml")
         #3rd: fix the superpack
         fixFn = self.transform(src=packNpx, xsl="fix.xsl", out="3-fix.npx.xml")
-        #4th: split superpack
-        self.transform(src=fixFn, xsl="splitPack.xsl", out="4-o.xml")
-        #5th: convert eröffnet only to csv
-        self.writeCsv(src="4-eröffnet.npx.xml")
-        #6th write htmlList
-        self.transform(src="4-eröffnet.npx.xml", xsl="ListeFreigegebeneDigitalisate.xsl", out="6-ListeFreigegebeneDigitalisate.html")
+        #4th: split superpack in eröffnet and nicht eröffnet
+        if split is True:
+            self.transform(src=fixFn, xsl="splitPack.xsl", out="4-o.xml")
+            #5th: convert eröffnet only to csv
+            self.writeCsv(src="4-eröffnet.npx.xml")
+            #6th write htmlList
+            self.transform(src="4-eröffnet.npx.xml", xsl="ListeFreigegebeneDigitalisate.xsl", out="6-ListeFreigegebeneDigitalisate.html")
+        else:
+            self.writeCsv(src=fixFn)
+            #6th write htmlList
+            self.transform(src="3-fix.npx.xml", xsl="ListeFreigegebeneDigitalisate.xsl", out="6-ListeFreigegebeneDigitalisate.html")
+
         #7th convert and copy freigebene attachments from eröffnet.npx
         self.cpAttachments(output=output)
     
@@ -102,7 +108,7 @@ class Ford:
         s.transform(srcFn, xslFn, outFn)
         return outFn
         
-    def cpAttachments(self, *, output):
+    def cpAttachments(self, *, output, path):
         """
             Copy and resize images and just copy some other attachment files.
             Resizing to longest size 1848 px.
@@ -111,7 +117,6 @@ class Ford:
             Output is written to {output}/pix
 
             Biggest png that I've found so far is 1848.
-            3 Wege wants origname with longest side 1848.
         """
         pixDir = self.targetDir.parent.joinpath("pix")
         if not pixDir.exists():
@@ -120,7 +125,7 @@ class Ford:
         for pic_fn in Path().rglob(f"**/pix_*/*"):
             #print (f"****{pic_fn}")
             if pic_fn.suffix != ".mp3": #pil croaks over mp3
-                if self.inEö(fn=pic_fn.name):
+                if self.inFile(fn=pic_fn.name, path=path):
                     if not (pic_fn.parent.name == output):
                         try:
                             im = Image.open(pic_fn)
@@ -146,15 +151,14 @@ class Ford:
                             # with ZipFile('spam.zip', 'w') as myzip:
                             #    myzip.write('eggs.txt')
 
-    def inEö (self, *, fn):
+    def inFile (self, *, fn, path):
         """
         Tests if given filename fn is in the set of already opened exhibits (eröffnet).
         Returns True if fn exists, else False.
         """        
-        if not hasattr(self, "eö"):
-            eöFn = self.targetDir.joinpath("4-eröffnet.npx.xml")
-            self.eö = etree.parse(str(eöFn))
-        r = self.eö.xpath(f"/n:npx/n:multimediaobjekt[n:dateinameNeu= '{fn}']", namespaces={"n": "http://www.mpx.org/npx"})
+        if not hasattr(self, "FileCheck"):
+            self.FileCheck = etree.parse(str(path))
+        r = self.FileCheck.xpath(f"/n:npx/n:multimediaobjekt[n:dateinameNeu= '{fn}']", namespaces={"n": "http://www.mpx.org/npx"})
         #print (r)
         if r:
             return True
@@ -185,7 +189,7 @@ class Ford:
             STEP 3 : Write csv file
         """
         fn = self.targetDir.joinpath (src)
-        #self.eö = etree.parse(str(fn))
+        #self.FileCheck = etree.parse(str(fn))
 
         print(f"About to write csv from {fn}")
         Npx2csv(fn, self.targetDir.joinpath("5-eö"))
@@ -217,6 +221,12 @@ if __name__ == "__main__":
         "-d", "--date", required=True, help="Export date you want to pack"
     )
     parser.add_argument(
+        "-s",
+        "--split",
+        help="Add split eröffnet or not",
+        action="store_true"
+    )
+    parser.add_argument(
         "-o",
         "--output",
         required=True,
@@ -224,5 +234,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    Ford(date=args.date, output=args.output)
+    Ford(date=args.date, output=args.output, split=args.split)
     
