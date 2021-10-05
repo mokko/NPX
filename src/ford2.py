@@ -41,6 +41,9 @@ CURRENT STEPS
 
 RECENT CHANGES
  Use new output dir in C:\m3\zpx2npx\sdata
+ 
+Todo
+ improve logging
 """
 
 import argparse
@@ -81,31 +84,40 @@ class Ford:
 
         # 1st: convert packs to individual npx
         self.zpx2npx(date=date, outDir="1-packs")  #
+ 
         # 2nd: join superpack
         packNpx = self.joinPack(inDir="1-packs", out="2-superpack.npx.xml")
+
         # 3rd: fix the superpack
         fixFn = self.transform(src=packNpx, xsl="fix.xsl", out="3-fix.npx.xml")
-        # 4th: split superpack in eröffnet and nicht eröffnet
+
         if split is True:
+            # 4th: split superpack in eröffnet and nicht eröffnet
             self.transform(src=fixFn, xsl="splitPack.xsl", out="4-o.xml")
+            
             # 5th: convert eröffnet only to csv
             self.writeCsv(src="4-eröffnet.npx.xml")
+            
             # 6th write htmlList
             self.transform(
                 src="4-eröffnet.npx.xml",
                 xsl="ListeFreigegebeneDigitalisate.xsl",
                 out="6-ListeFreigegebeneDigitalisate.html",
             )
+            
             # 7th convert and copy freigebene attachments from eröffnet.npx
             self.cpAttachments(output=output, path="4-eröffnet.npx.xml")
         else:
+            # 5th: convert eröffnet only to csv
             self.writeCsv(src=fixFn)
+            
             # 6th write htmlList
             self.transform(
                 src="3-fix.npx.xml",
                 xsl="ListeFreigegebeneDigitalisate.xsl",
                 out="6-ListeFreigegebeneDigitalisate.html",
             )
+            
             # 7th convert and copy freigebene attachments from eröffnet.npx
             self.cpAttachments(output=output, path=fixFn)
 
