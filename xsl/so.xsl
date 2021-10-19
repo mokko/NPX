@@ -49,18 +49,27 @@
 			<xsl:apply-templates select="z:vocabularyReference[@name='ObjCreditLineVoc']"/> 
 			<!--datierung-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjDateGrp']"/> 
-			<!--erwerbDatum-->
-			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionDateGrp']"/> 
-			<!--erwerbungsart-->
+			<erwerbDatum/>
+			<erwerbVon/>
+			<!--xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionDateGrp']"/> 
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
-			<!--erwerbVon
+			erwerbVon
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
+			z:repeatableGroupItem/z:vocabularyReference/z:vocabularyReferenceItem[z:formattedValue = 'Ausgabe']
 			-->
-			<!--erwerbNotizAusgabe TODO: Ausgabe noch nicht implementiert -->
-			<xsl:apply-templates select="z:repeatableGroup[
-				@name='ObjAcquisitionNotesGrp' and 
-				./z:repeatableGroupItem/z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Notiz'
-				]"/>
+			<!--erwerbNotizAusgabe -->
+			<xsl:if test="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']/z:repeatableGroupItem[
+						z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Ausgabe']">
+				<erwerbNotizAusgabe>
+					<xsl:for-each select="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']/z:repeatableGroupItem[
+						z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Ausgabe']">
+						<xsl:value-of select="z:dataField/z:value"/>
+						<xsl:if test="position()!=last()">
+							<xsl:text>; </xsl:text>
+						</xsl:if>
+					</xsl:for-each>
+				</erwerbNotizAusgabe>
+			</xsl:if>
 			<!-- geogrBezug-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjGeograficGrp']"/>
 			<!-- identNr-->
@@ -154,7 +163,8 @@
 		</credits>
 	</xsl:template>	
 
-	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionDateGrp']">
+	<!--
+	xsl:template match="z:repeatableGroup[@name='ObjAcquisitionDateGrp']">
 		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
 		<erwerbDatum>
 			<xsl:for-each select="z:repeatableGroupItem">
@@ -168,9 +178,9 @@
                 </xsl:if>
 			</xsl:for-each>
 		</erwerbDatum>
-	</xsl:template>			 
+	</xsl:template-->			 
 
-	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']">
+	<!--xsl:template match="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']">
 		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
 		<erwerbungsart>
 			<xsl:for-each select="z:repeatableGroupItem">
@@ -180,7 +190,7 @@
                 </xsl:if>
 			</xsl:for-each>
 		</erwerbungsart>
-	</xsl:template>			 
+	</xsl:template-->			 
 
 	<!--datierung-->
 	<xsl:template match="z:repeatableGroup[@name='ObjDateGrp']">
@@ -204,12 +214,6 @@
                 </xsl:if>
 			</xsl:for-each>
 		</datierung>
-	</xsl:template>
-
-	<xsl:template match="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']">
-		<erwerbNotizAusgabe>
-			<xsl:value-of select="z:repeatableGroupItem/z:dataField[@name = 'MemoClb']"/>
-		</erwerbNotizAusgabe>
 	</xsl:template>
 
 	<xsl:template match="z:repeatableGroup[@name='ObjGeograficGrp']">

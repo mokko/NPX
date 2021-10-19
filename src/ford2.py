@@ -40,7 +40,7 @@ CURRENT STEPS
     (7) convert images for freigegebene digital assets of the objects in eröffnet.npx
 
 RECENT CHANGES
- Use new output dir in C:\m3\zpx2npx\sdata
+ Use new output dir in C:\m3\zpx2npx\sdata -> still cd to MpApi\sdata dir to execute!
  
 Todo
  improve logging
@@ -106,7 +106,8 @@ class Ford:
             )
             
             # 7th convert and copy freigebene attachments from eröffnet.npx
-            self.cpAttachments(output=output, path="4-eröffnet.npx.xml")
+            path = self.targetDir.joinpath("4-eröffnet.npx.xml")
+            self.cpAttachments(output=output, path=path)
         else:
             # 5th: convert eröffnet only to csv
             self.writeCsv(src=fixFn)
@@ -149,10 +150,10 @@ class Ford:
         pixDir = self.targetDir.parent.joinpath("pix")
         if not pixDir.exists():
             pixDir.mkdir(parents=True)
-        print(f"Copying images to {pixDir}, if necessary")
+        print(f"Copying and resizing images to {pixDir}, if necessary")
         for pic_fn in Path().rglob(f"**/pix_*/*"):
             # print (f"****{pic_fn}")
-            if pic_fn.suffix != ".mp3":  # pil croaks over mp3
+            if pic_fn.suffix != ".mp3":  # pil dies over mp3
                 if self.inNpx(fn=pic_fn.name, path=path):
                     if not (pic_fn.parent.name == output):
                         try:
