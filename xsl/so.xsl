@@ -63,7 +63,7 @@
 				<erwerbNotizAusgabe>
 					<xsl:for-each select="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']/z:repeatableGroupItem[
 						z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Ausgabe']">
-						<xsl:value-of select="z:dataField/z:value"/>
+						<xsl:value-of select="z:dataField[@name='MemoClb']/z:value"/>
 						<xsl:if test="position()!=last()">
 							<xsl:text>; </xsl:text>
 						</xsl:if>
@@ -106,8 +106,8 @@
 				Hier werden nur definitive aktuelle Standorte ausgegeben, keine historischen.
 			-->
 			<standortAktuellHf>
-				<xsl:if test="starts-with(z:vocabularyReference[@name='ObjNormalLocationVoc']/z:vocabularyReferenceItem/@name, 'HUF##')">
-					<xsl:value-of select="z:vocabularyReference[@name='ObjNormalLocationVoc']/z:vocabularyReferenceItem/@name"/>
+				<xsl:if test="starts-with(z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name, 'HUF##')">
+					<xsl:value-of select="z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name"/>
 				</xsl:if>
 			</standortAktuellHf>
 			<!--titel-->
@@ -309,12 +309,28 @@
 	<xsl:template match="z:repeatableGroup[@name='ObjTextOnlineGrp']">
 		<onlineBeschreibung>
 			<xsl:for-each select="z:repeatableGroupItem">
-				<!-- sort doesn't seem to exist here
-				xsl:sort select="z:dataField[@name='SortLnu']/z:value"/-->
-				<xsl:value-of select="z:dataField[@name='TextClb']"/>
-                <xsl:if test="position()!=last()">
-                    <xsl:text>; </xsl:text>
-                </xsl:if>
+				<!-- 
+					sort doesn't seem to exist here
+					xsl:sort select="z:dataField[@name='SortLnu']/z:value"/
+				-->
+				<xsl:variable name="txt" select="z:dataField[@name='TextClb']/z:value"/>
+				<xsl:variable name="before" select="normalize-space(substring-before($txt,'[SM8HF]'))"/>
+				<xsl:variable name="after" select="normalize-space(substring-after($txt,'[SM8HF]'))"/>
+				<xsl:variable name="new">
+					<xsl:if test="$before ne ''">
+						<xsl:value-of select="$before"/>
+					</xsl:if>
+					<xsl:if test="$before ne '' and $after ne ''">
+						<xsl:text> </xsl:text>
+					</xsl:if>
+					<xsl:if test="$after ne ''">
+						<xsl:value-of select="$after"/>
+					</xsl:if>
+				</xsl:variable>
+				<xsl:value-of select="$new"/>
+				<xsl:if test="position()!=last()">
+					<xsl:text>; </xsl:text>
+				</xsl:if>
 			</xsl:for-each>		
 		</onlineBeschreibung>
 	</xsl:template>
