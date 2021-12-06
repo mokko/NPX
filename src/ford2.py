@@ -84,7 +84,7 @@ class Ford:
 
         # 1st: convert packs to individual npx
         self.zpx2npx(date=date, outDir="1-packs")  #
- 
+
         # 2nd: join superpack
         packNpx = self.joinPack(inDir="1-packs", out="2-superpack.npx.xml")
 
@@ -94,34 +94,33 @@ class Ford:
         if split is True:
             # 4th: split superpack in eröffnet and nicht eröffnet
             self.transform(src=fixFn, xsl="splitPack.xsl", out="4-o.xml")
-            
+
             # 5th: convert eröffnet only to csv
             self.writeCsv(src="4-eröffnet.npx.xml")
-            
+
             # 6th write htmlList
             self.transform(
                 src="4-eröffnet.npx.xml",
                 xsl="ListeFreigegebeneDigitalisate.xsl",
                 out="6-ListeFreigegebeneDigitalisate.html",
             )
-            
+
             # 7th convert and copy freigebene attachments from eröffnet.npx
             path = self.targetDir.joinpath("4-eröffnet.npx.xml")
             self.cpAttachments(output=output, path=path)
         else:
             # 5th: convert eröffnet only to csv
             self.writeCsv(src=fixFn)
-            
+
             # 6th write htmlList
             self.transform(
                 src="3-fix.npx.xml",
                 xsl="ListeFreigegebeneDigitalisate.xsl",
                 out="6-ListeFreigegebeneDigitalisate.html",
             )
-            
+
             # 7th convert and copy freigebene attachments from eröffnet.npx
             self.cpAttachments(output=output, path=fixFn)
-
 
     def transform(self, *, src, xsl, out):
         """
@@ -141,10 +140,10 @@ class Ford:
 
     def cpAttachments(self, *, output, path):
         """
-        Copy and resize images or if other file type: just copy  other attachment 
+        Copy and resize images or if other file type: just copy  other attachment
         files. Resizing to longest size 1848 px.
 
-        Input files are **/pix_*/*, but _only_ if attachments are in 
+        Input files are **/pix_*/*, but _only_ if attachments are in
         eröffnet.npx.xml. Output is written to {output}/pix
         """
         pixDir = self.targetDir.parent.joinpath("pix")
@@ -184,7 +183,7 @@ class Ford:
 
     def inNpx(self, *, fn, path):
         """
-        Tests if a given filename fn is referenced in the npx file located at 
+        Tests if a given filename fn is referenced in the npx file located at
         path. Returns True if fn exists as n:dateinameNeu, else False.
         """
         if not hasattr(self, "FileCheck"):

@@ -18,18 +18,29 @@
 	- Soll ich Gewicht jetzt in eigenes Feld schreiben, d.h. nicht in Maße? 
 	  Das war früher mal von CF gewünscht, ging damals nicht, geht jetzt, wäre aber 
 	  eine Unregelmäßigkeit in meinen Mapping.
+	  
+	  /m:application/m:modules/m:module[
+                        @name = 'Multimedia']/m:moduleItem[@id = '{mulId}' and 
+                        ./m:repeatableGroup[@name ='MulApprovalGrp']
+                        /m:repeatableGroupItem/m:vocabularyReference[@name='TypeVoc']/m:vocabularyReferenceItem[@id= '1816002'] and
+                        ./m:repeatableGroup[@name ='MulApprovalGrp']
+                        /m:repeatableGroupItem/m:vocabularyReference[@name='ApprovalVoc']/m:vocabularyReferenceItem[@id= '4160027']                    
+                        ]
 	-->
 
     <xsl:template match="/">
-        <npx version="20210516">
+        <npx version="20211206">
 			<!--include only smb-freigebene medien!-->
-			<xsl:apply-templates select="/z:application/z:modules/z:module[
-				@name = 'Multimedia']/z:moduleItem/z:repeatableGroup[
-				@name = 'MulApprovalGrp']/z:repeatableGroupItem/z:vocabularyReference[
-				@name = 'TypeVoc']/z:vocabularyReferenceItem[
-				@name = 'SMB-digital']/../../../z:repeatableGroupItem/z:vocabularyReference[
-				@name = 'ApprovalVoc']/z:vocabularyReferenceItem[@name = 'Ja']
-				/../../../.." />
+			<xsl:apply-templates select="/z:application/z:modules/z:module[@name = 'Multimedia']/z:moduleItem[
+				z:repeatableGroup[@name = 'MulApprovalGrp']
+					/z:repeatableGroupItem/z:vocabularyReference[
+						@name = 'TypeVoc']/z:vocabularyReferenceItem[
+						@name = 'SMB-digital'] and 
+				z:repeatableGroup[@name = 'MulApprovalGrp']
+					/z:repeatableGroupItem/z:vocabularyReference[
+						@name = 'ApprovalVoc']/z:vocabularyReferenceItem[
+						@name = 'Ja']
+				]" />
 			<xsl:apply-templates select="/z:application/z:modules/z:module[@name='Object']/z:moduleItem" />
         </npx>
     </xsl:template>
