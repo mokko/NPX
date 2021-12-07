@@ -267,24 +267,24 @@
 		</ikonografieEM>
 	</xsl:template> 
 
+	<!--
+	Verpackungs- und Transportmaße sollen nicht ausgespielt werden
+	7.12.2021
+	Transportmaß im falschen Qualifikator lasse ich stehen.
+	-->
+	
 	<xsl:template match="z:repeatableGroup[@name='ObjDimAllGrp']">
+		<xsl:variable name="excluded" select="'Verpackungsmaß', 'Transportmaß'"/>
 		<maße>
-			<xsl:for-each select="z:repeatableGroupItem">
+			<xsl:for-each select="z:repeatableGroupItem[z:moduleReference[
+				@name='TypeDimRef']/z:moduleReferenceItem[not (z:formattedValue = $excluded)]]">
 				<xsl:sort select="z:dataField[@name='SortLnu']/z:value"/>
 				<xsl:call-template name="sortQ"/>
 				<xsl:if test="z:vocabularyReference[@name='UnitDdiVoc']">
 					<xsl:value-of select="z:moduleReference[@name='TypeDimRef']"/>
 					<xsl:text>: </xsl:text>
 				</xsl:if>
-				
 				<xsl:value-of select="z:virtualField[@name='PreviewVrt']/z:value"/>
-				<!--
-				<xsl:value-of select="z:dataField[@name='WeightNum']/z:value"/>
-				xsl:if test="z:vocabularyReference[@name='UnitDdiVoc']">
-					<xsl:text> [</xsl:text>
-					<xsl:value-of select="z:vocabularyReference[@name='UnitDdiVoc']/z:vocabularyReferenceItem/@name"/>
-					<xsl:text>]</xsl:text>
-				</xsl:if-->
                 <xsl:if test="position()!=last()">
                     <xsl:text>; </xsl:text>
                 </xsl:if>
