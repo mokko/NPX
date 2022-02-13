@@ -73,54 +73,37 @@ class Ford:
         # e.g. Afrika-Ausstellung-clean-exhibit20226.xml
         # print (f"__init__DATE{date}")
 
-        if not Path(output).is_dir():
-            print(f"Making dir {output}")
-            Path(output).mkdir()
-        logfile = Path(output).joinpath("pix.log")
+        self.targetDir = outDir.joinpath(output).joinpath(date)
+        print(f"Using {self.targetDir}")
+        if not Path(self.targetDir).is_dir():
+            print(f"Making dir {self.targetDir}")
+            self.targetDir.mkdir(parents=True)
+
+        logfile = self.targetDir.joinpath("pix.log")
         logging.basicConfig(
             filename=logfile, filemode="w", encoding="utf-8", level=logging.INFO
         )
-        self.targetDir = outDir.joinpath(output).joinpath(date)
 
         # 1st: convert packs to individual npx
         self.zpx2npx(date=date, outDir="1-packs")  #
-
         # 2nd: join superpack
         packNpx = self.joinPack(inDir="1-packs", out="2-superpack.npx.xml")
 
         # 3rd: fix the superpack
         fixFn = self.transform(src=packNpx, xsl="fix.xsl", out="3-fix.npx.xml")
 
-        if split is True:
-            # 4th: split superpack in eröffnet and nicht eröffnet
-            self.transform(src=fixFn, xsl="splitPack.xsl", out="4-o.xml")
+        # 5th: convert eröffnet only to csv
+        self.writeCsv(src=fixFn)
 
-            # 5th: convert eröffnet only to csv
-            self.writeCsv(src="4-eröffnet.npx.xml")
+        # 6th write htmlList
+        self.transform(
+            src="3-fix.npx.xml",
+            xsl="ListeFreigegebeneDigitalisate.xsl",
+            out="6-ListeFreigegebeneDigitalisate.html",
+        )
 
-            # 6th write htmlList
-            self.transform(
-                src="4-eröffnet.npx.xml",
-                xsl="ListeFreigegebeneDigitalisate.xsl",
-                out="6-ListeFreigegebeneDigitalisate.html",
-            )
-
-            # 7th convert and copy freigebene attachments from eröffnet.npx
-            path = self.targetDir.joinpath("4-eröffnet.npx.xml")
-            self.cpAttachments(output=output, path=path)
-        else:
-            # 5th: convert eröffnet only to csv
-            self.writeCsv(src=fixFn)
-
-            # 6th write htmlList
-            self.transform(
-                src="3-fix.npx.xml",
-                xsl="ListeFreigegebeneDigitalisate.xsl",
-                out="6-ListeFreigegebeneDigitalisate.html",
-            )
-
-            # 7th convert and copy freigebene attachments from eröffnet.npx
-            self.cpAttachments(output=output, path=fixFn)
+        # 7th convert and copy freigebene attachments from eröffnet.npx
+        self.cpAttachments(output=output, path=fixFn)
 
     def transform(self, *, src, xsl, out):
         """
@@ -146,12 +129,13 @@ class Ford:
         Input files are **/pix_*/*, but _only_ if attachments are in
         eröffnet.npx.xml. Output is written to {output}/pix
         """
+        print(f"Enter cpAttachments ...")
         pixDir = self.targetDir.parent.joinpath("pix")
         if not pixDir.exists():
             pixDir.mkdir(parents=True)
-        print(f"Copying and resizing images to {pixDir}, if necessary")
+        print(f" Copying and resizing images to {pixDir}, if necessary")
         for pic_fn in Path().rglob(f"**/pix_*/*"):
-            # print (f"****{pic_fn}")
+            print(f"****{pic_fn}")
             if pic_fn.suffix != ".mp3":  # pil dies over mp3
                 if self.inNpx(fn=pic_fn.name, path=path):
                     if not (pic_fn.parent.name == output):
@@ -205,6 +189,7 @@ class Ford:
         Looks for many *.npx.xml files in inDir
         Outputs one superpack file.
         """
+        print("Enter joinPack...")
         s = Saxon(saxon_path)
         outFn = self.targetDir.joinpath(out)
         print(f"About to write superpack to {str(outFn)}")
@@ -236,11 +221,13 @@ class Ford:
 
         Write in subdir 1-packs
         """
+        print("Enter zpx2npx ...")
         s = Saxon(saxon_path)
-        for file in Path().rglob(f"**/*-clean-*.xml"):
+        for file in Path().rglob(f"**/*-join-*.xml"):
+            print(f"{file}")
             if file.parent.name == date:
                 # print (f"file: {file}")
-                label = re.match("(.*)-clean-", str(file.name)).group(1)
+                label = re.match("(.*)-join-", str(file.name)).group(1)
                 # print (f"LABEL {label}")
                 if label is None:
                     raise TypeError("label cannot be none")
