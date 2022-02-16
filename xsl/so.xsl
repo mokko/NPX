@@ -217,24 +217,40 @@
 	</xsl:template>
 
 	<xsl:template match="z:repeatableGroup[@name='ObjGeograficGrp']">
+		<xsl:variable name="order">
+			<xsl:choose>
+				<!-- 165950 = AKu -->
+				<xsl:when test="../z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem/@moduleItemId = '165950'">
+					<xsl:text>descending</xsl:text>
+				</xsl:when>
+				<xsl:otherwise>ascending</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
 		<geogrBezug>
 			<xsl:for-each select="z:repeatableGroupItem">
-				<xsl:sort select="z:dataField[@name='SortLnu']/z:value" data-type="number"/>
-				<xsl:call-template name="sortQ"/> 
+				<xsl:sort select="z:dataField[@name='SortLnu']/z:value" data-type="number" order="{$order}"/>
+				<!--xsl:call-template name="sortQ"/--> 
 				<!-- 
 					if ortDetails but no geoName, put ortDetails first 
 					not sure if I should pick @name oder z:formattedValue
 				-->
 				<xsl:variable name="geoName" select="z:vocabularyReference[@name='PlaceVoc']/z:vocabularyReferenceItem/@name"/>
 				<xsl:variable name="details" select="z:dataField[@name='DetailsTxt']"/>
-				<xsl:variable name="funktion" select="z:vocabularyReference[@name='TypeVoc']/z:vocabularyReferenceItem/@name"/>
-				
+				<xsl:variable name="ortstyp" select="z:vocabularyReference[@name='TypeVoc']/z:vocabularyReferenceItem/@name"/>
+				<xsl:variable name="bezeichnung" select="z:vocabularyReference[@name='GeopolVoc']/z:vocabularyReferenceItem/@name"/>
+
 				<!--xsl:message>
 					<xsl:text>N: </xsl:text>
 					<xsl:value-of select="$geoName"/>
 					<xsl:text> D: </xsl:text>
 					<xsl:value-of select="$details"/>
 				</xsl:message-->
+
+				<xsl:if test="$ortstyp ne ''">
+					<xsl:value-of select="$ortstyp"/>
+					<xsl:text>: </xsl:text>
+				</xsl:if>
+				
 				<xsl:choose>
 					<xsl:when test="not($geoName)">
 							<xsl:value-of select="$details"/>
@@ -244,16 +260,12 @@
 					</xsl:otherwise>
 				</xsl:choose>
 				
-				<xsl:text> [</xsl:text>
-					<xsl:value-of select="z:vocabularyReference[@name='GeopolVoc']/z:vocabularyReferenceItem/@name"/>
-				<xsl:text>]</xsl:text>
+				<xsl:if test="$bezeichnung ne ''">
+					<xsl:text> (</xsl:text>
+						<xsl:value-of select="$bezeichnung"/>
+					<xsl:text>)</xsl:text>
+				</xsl:if>
 
-				<!-- Funktion noch ausgeschaltet
-				<xsl:text> [</xsl:text>
-					<xsl:value-of select="$funktion"/>
-				<xsl:text>]</xsl:text>
-				-->
-				
 				<xsl:if test="$geoName and normalize-space($details) ne ''">
 					<xsl:text> [</xsl:text>
 						<xsl:value-of select="z:dataField[@name='DetailsTxt']"/>
