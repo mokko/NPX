@@ -45,8 +45,9 @@
 			</bereich>
 			<!--beteiligte-->
 			<xsl:apply-templates select="z:moduleReference[@name='ObjPerAssociationRef' and @targetModule ='Person']"/> 
-			<!-- credits-->
-			<xsl:apply-templates select="z:vocabularyReference[@name='ObjCreditLineVoc']"/> 
+			<credits>
+				<xsl:apply-templates select="z:vocabularyReference[@name='ObjCreditLineVoc']"/> 
+			</credits>
 			<!--datierung-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjDateGrp']"/> 
 			<erwerbDatum/>
@@ -158,9 +159,7 @@
 
 	<!-- credits-->
 	<xsl:template match="z:vocabularyReference[@name='ObjCreditLineVoc']">
-		<credits>
 			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
-		</credits>
 	</xsl:template>	
 
 	<!--
@@ -247,8 +246,9 @@
 				</xsl:message-->
 
 				<xsl:if test="$ortstyp ne ''">
+					<xsl:text>[</xsl:text>
 					<xsl:value-of select="$ortstyp"/>
-					<xsl:text>: </xsl:text>
+					<xsl:text>] </xsl:text>
 				</xsl:if>
 				
 				<xsl:choose>
@@ -261,9 +261,9 @@
 				</xsl:choose>
 				
 				<xsl:if test="$bezeichnung ne ''">
-					<xsl:text> (</xsl:text>
+					<xsl:text> [</xsl:text>
 						<xsl:value-of select="$bezeichnung"/>
-					<xsl:text>)</xsl:text>
+					<xsl:text>]</xsl:text>
 				</xsl:if>
 
 				<xsl:if test="$geoName and normalize-space($details) ne ''">

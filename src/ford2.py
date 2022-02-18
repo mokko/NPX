@@ -135,7 +135,7 @@ class Ford:
             pixDir.mkdir(parents=True)
         print(f" Copying and resizing images to {pixDir}, if necessary")
         for pic_fn in Path().rglob(f"**/pix_*/*"):
-            print(f"****{pic_fn}")
+            #print(f"****{pic_fn}")
             if pic_fn.suffix != ".mp3":  # pil dies over mp3
                 if self.inNpx(fn=pic_fn.name, path=path):
                     if not (pic_fn.parent.name == output):
@@ -144,6 +144,8 @@ class Ford:
                         except:
                             logging.info(f"{pic_fn} no pic")
                         out_fn = pixDir.joinpath(pic_fn.name)
+                        if out_fn.suffix.lower().startswith(".tif"):
+                            out_fn = out_fn.with_suffix(".jpg")
                         if not out_fn.exists():
                             print(f"{pic_fn} -> {out_fn}")
                             width, height = im.size
@@ -161,9 +163,13 @@ class Ford:
                                 out = im.resize(new_size, Image.LANCZOS)
                                 out.save(out_fn)
                             else:
-                                shutil.copyfile(pic_fn, out_fn)
-                            # with ZipFile('spam.zip', 'w') as myzip:
-                            #    myzip.write('eggs.txt')
+                                if pic_fn.suffix.lower().startswith(".tif"):
+                                    print (f"{pic_fn} changing format to jpg")
+                                    im = im.convert("RGB")
+                                    out.save(out_fn)
+                                else:
+                                    print (f"{pic_fn} just copying")
+                                    shutil.copyfile(pic_fn, out_fn)
 
     def inNpx(self, *, fn, path):
         """
@@ -224,13 +230,13 @@ class Ford:
         print("Enter zpx2npx ...")
         s = Saxon(saxon_path)
         for file in Path().rglob(f"**/*-join-*.xml"):
-            print(f"{file}")
             if file.parent.name == date:
                 # print (f"file: {file}")
                 label = re.match("(.*)-join-", str(file.name)).group(1)
                 # print (f"LABEL {label}")
                 if label is None:
-                    raise TypeError("label cannot be none")
+                    raise ValueError("label cannot be none")
+                print(f"{file}")
                 xsl = xslDir.joinpath("zpx2npx.xsl")
                 npxFn = self.targetDir.joinpath(outDir, f"{label}-clean.npx.xml")
                 s.transform(file, xsl, npxFn)

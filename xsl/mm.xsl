@@ -52,14 +52,25 @@
 		</datum>
 	</xsl:template>
 
+	<!-- 2022.02.18: newly lower-cased -->
 	<xsl:template match="z:dataField[@name = 'MulOriginalFileTxt']">
 		<dateinameNeu>
 			<xsl:value-of select="../@id"/>
-			<xsl:analyze-string select="z:value" regex="(\.\w+)">
-				<xsl:matching-substring>
-					<xsl:value-of select="regex-group(1)"/>
-				</xsl:matching-substring>
-			</xsl:analyze-string>
+			<xsl:variable name="suffix">
+				<xsl:analyze-string select="z:value" regex="(\.\w+)">
+					<xsl:matching-substring>
+						<xsl:value-of select="regex-group(1)"/>
+					</xsl:matching-substring>
+				</xsl:analyze-string>
+			</xsl:variable>
+			<xsl:choose>
+				<xsl:when test="starts-with(lower-case($suffix),'.tif')">
+					<xsl:text>.jpg</xsl:text>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="$suffix"/>
+				</xsl:otherwise>
+			</xsl:choose>
 		</dateinameNeu>
 	</xsl:template>
 
