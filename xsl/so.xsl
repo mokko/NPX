@@ -145,6 +145,12 @@
 	<xsl:template match="z:moduleReference[@name='ObjPerAssociationRef' and @targetModule ='Person']">
 		<beteiligte>
 			<xsl:for-each select="z:moduleReferenceItem">
+				<!-- 20220524 explicit order -->
+				<xsl:sort select="z:dataField[@name='SortLnu']/z:value" data-type="number" order="ascending"/>
+				<xsl:message>
+					<xsl:text>Beteiligte Sort: </xsl:text>
+					<xsl:value-of select="z:dataField[@name='SortLnu']/z:value"/>
+				</xsl:message>
 				<xsl:variable name="role" select="z:vocabularyReference[@name='RoleVoc']/z:vocabularyReferenceItem/@name"/>
 				<xsl:value-of select="substring-before(z:formattedValue, concat(', ', $role))"/>
 				<xsl:text> [</xsl:text>
