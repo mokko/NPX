@@ -53,6 +53,7 @@ import re
 import shutil
 import sys
 from PIL import Image, ImageFile
+from PIL.ExifTags import TAGS
 from pathlib import Path
 from lxml import etree
 
@@ -63,7 +64,7 @@ sys.path.append("C:/m3/Pipeline/src")
 from Saxon import Saxon
 from lvlup.Npx2csv import Npx2csv
 
-ImageFile.LOAD_TRUNCATED_IMAGES = True # does this do anything?
+ImageFile.LOAD_TRUNCATED_IMAGES = True  # does this do anything?
 xslDir = Path(__file__).parent.parent.joinpath("xsl")
 outDir = Path(__file__).parent.parent.joinpath("sdata")
 
@@ -138,22 +139,21 @@ class Ford:
         print(f" Copying and resizing images to {self.pixDir}, if necessary")
         for pic_fn in Path().rglob(f"**/pix_*/*"):
             # ignore mp3s b/c pil dies over mp3
-            if pic_fn.suffix != ".mp3":  
-
+            if pic_fn.suffix != ".mp3":
                 # converting tif to jpg; do this early to be able to check if in npx
                 if pic_fn.suffix.lower().startswith(".tif"):
                     tif_fn = pic_fn
                     jpg_fn = pic_fn.with_suffix(".jpg")
                     if self.inNpx(fn=jpg_fn.name, path=path):
-                        #print (f"{pic_fn}")
+                        # print (f"{pic_fn}")
                         if not (pic_fn.parent.name == output):
-                            self.resizeOrCopy(pic_fn=tif_fn)
+                            self.changeOrCopy(pic_fn=tif_fn)
                 else:
                     # only act for pic-files in the npx
                     if self.inNpx(fn=pic_fn.name, path=path):
-                        #print (f"{pic_fn}")
+                        # print (f"{pic_fn}")
                         if not (pic_fn.parent.name == output):
-                            self.resizeOrCopy(pic_fn=pic_fn)
+                            self.changeOrCopy(pic_fn=pic_fn)
 
     def inNpx(self, *, fn, path):
         """
@@ -192,55 +192,71 @@ class Ford:
         s.join(first, xslDir.joinpath("join_npx.xsl"), outFn)
         return outFn
 
-    def resizeOrCopy(self, *, pic_fn):
+    def changeOrCopy(self, *, pic_fn):
         """
         This method receives the path to an image file and tries to do the right thing:
         - just copy original image file OR
         - resize to fit limitations OR/AND
         - change format from jpg to tif
         - error
-        
+
         Expects:
         -pic_fn: path to file
-        
+
         Usually a jpg, but can also be a tif
         """
-
+        print(f"{pic_fn}")
+        CHANGE = False
         try:
             im = Image.open(pic_fn)
         except:
             logging.error(f"{pic_fn} not found or not pic")
-        else: # if no error
+        else:  # if no error
             im = im.convert("RGB")
             # new target destination
             out_fn = self.pixDir.joinpath(pic_fn.name)
 
             if out_fn.suffix.lower().startswith(".tif"):
                 out_fn = out_fn.with_suffix(".jpg")
-                print (f"!!!!!{pic_fn} changing format to jpg")
-                logging.warning (f"WARN: from tif to jpg {pic_fn}")
+                CHANGE = True
+                # print (f"!!!!!{pic_fn} changing format to jpg")
+                logging.warning(f"{pic_fn}: from tif to jpg")
 
             # dont overwrite existing files
             if not out_fn.exists():
+                orientation = None
+                for (key, value) in im.getexif().items():
+                    if TAGS.get(key) == "Orientation":
+                        orientation = value
+                        if orientation != 1:
+                            CHANGE = True
+                            logging.warning(f"{pic_fn}: Orientation {orientation}")
+                            print(f"*changing ORIENTATION: {orientation}")
+                            if orientation == 3:
+                                im = im.rotate(180, expand=True, resample=Image.BICUBIC)
+                            if orientation == 6:
+                                im = im.rotate(270, expand=True, resample=Image.BICUBIC)
+                            if orientation == 8:
+                                im = im.rotate(90, expand=True, resample=Image.BICUBIC)
+
                 width, height = im.size
                 if width > MAX_SIZE or height > MAX_SIZE:
-                    logging.info(
-                        f"{pic_fn} exceeds size: {width} x {height}"
-                    )
+                    logging.info(f"{pic_fn} exceeds size: {width} x {height}")
                     if width > height:
                         factor = MAX_SIZE / width
                     else:  # height > width or both equal
                         factor = MAX_SIZE / height
                     new_size = (int(width * factor), int(height * factor))
                     print(f"*resizing {factor} {new_size}")
-                    out = im.resize(new_size, Image.LANCZOS)
-                    out.save(out_fn)
-                elif pic_fn.suffix.lower().startswith(".tif"):
+                    im = im.resize(new_size, Image.LANCZOS)
+                    CHANGE = True
+
+                if CHANGE:
                     im.save(out_fn)
                 else:
-                    print (f"\tjust copying")
+                    # print (f"\tjust copying")
                     shutil.copyfile(pic_fn, out_fn)
-            #else:
+            # else:
             #    print ("\texists already at target")# {out_fn}
 
     def writeCsv(self, *, src):

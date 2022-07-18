@@ -25,4 +25,25 @@
 			<xsl:value-of select="n:identNr"/>
 		</xsl:message>
 	</xsl:template>
+
+	<xsl:template match="/n:npx/n:sammlungsobjekt">
+		<!-- Do i have to eliminate linked multimedia records as well? Probably!-->
+		<xsl:choose>
+		<xsl:when test="
+			n:verwaltendeInstitution eq 'Ethnologisches Museum, Staatliche Museen zu Berlin' 
+			or n:verwaltendeInstitution eq 'Museum für Asiatische Kunst, Staatliche Museen zu Berlin'
+		">
+            <xsl:copy>
+              <xsl:apply-templates select='@* | node()'/>
+            </xsl:copy>
+		</xsl:when>
+		<xsl:otherwise>
+			<xsl:message>
+				<xsl:text>ANDERE VERWALTENDE INSTITUTIONEN WERDEN AUSSORTIERT</xsl:text>
+				<xsl:value-of select="n:identNr"/>
+			</xsl:message>
+		</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
 </xsl:stylesheet>
