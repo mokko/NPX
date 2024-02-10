@@ -225,7 +225,7 @@ class Ford:
             # dont overwrite existing files
             if not out_fn.exists():
                 orientation = None
-                for (key, value) in im.getexif().items():
+                for key, value in im.getexif().items():
                     if TAGS.get(key) == "Orientation":
                         orientation = value
                         if orientation != 1:
