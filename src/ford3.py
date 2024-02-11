@@ -1,9 +1,11 @@
 """
 A new script to transform mpx data to npx and csv
 
-Should write to ../sdata/ProjectLabel/20240209.
+This script writes to 
+    zml2npx/sdata/ProjectLabel/20240209 etc.
+independent from where it's executed.
 
-Currently we accept only single files as input.
+Currently we accept only a single file as input.
 """
 import csv
 import os
@@ -14,6 +16,10 @@ import xml.etree.ElementTree as ET
 saxLib = os.environ["saxLib"]
 mpx2npx = Path(__file__).parent.parent / "xsl" / "zpx2npx.xsl"
 
+ns = {
+    "npx": "http://www.mpx.org/npx",  # npx is no mpx
+}
+
 
 def main(src: str, *, force: bool = False) -> None:
     src = Path(src)
@@ -21,10 +27,8 @@ def main(src: str, *, force: bool = False) -> None:
     pro_label = src.parent.parent.name
     pro_dir = Path(__file__).parent.parent / "sdata" / pro_label / date
     npx_fn = pro_dir / Path(src.name).with_suffix(".npx.xml")
-    so = Path(src.stem + "-so")
-    mm = Path(src.stem + "-mm")
-    so_fn = pro_dir / so.with_suffix(".csv")
-    mm_fn = pro_dir / mm.with_suffix(".csv")
+    so_fn = pro_dir / src.stem + "-so.csv"
+    mm_fn = pro_dir / src.stem + "-mm.csv"
     print(f"About to save at '{npx_fn}'")
     if not pro_dir.exists():
         pro_dir.mkdir(parents=True)
@@ -33,45 +37,52 @@ def main(src: str, *, force: bool = False) -> None:
         _saxon(src, mpx2npx, npx_fn)
 
     if not so_fn or force is True:
-        _writeCsv(src=npx_fn, fn=so_fn, xpath="npx:sammlungsobjekt")
+        _writeCsv(src=npx_fn, csv_fn=so_fn, xpath="./npx:sammlungsitem")
 
     if not mm_fn or force is True:
-        _writeCsv(src=npx_fn, fn=mm_fn, xpath="npx:multimediaobjekt")
+        _writeCsv(src=npx_fn, csv_fn=mm_fn, xpath="./npx:multimediaitem")
 
 
-def _writeCsv(*, src, fn, xpath):
+def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
+    """
+    Transform npx at src to csv at csv_fn using the xpath expression to pick object type.
+
+    npx elements under the moduleItem level are aspects of the object.
+    """
     columns = set()  # distinct list for columns for csv table
-    ns = {
-        "npx": "http://www.mpx.org/npx",  # npx is no mpx
-    }
-
     npx_tree = ET.parse(src)
 
-    # Loop1: identify attributes
-    for so in npx_tree.findall(f"./{xpath}", ns):
-        for aspect in so.findall("*"):
-            tag = aspect.tag.split("}")[1]
+    # Looping thru all records to determine all attributes
+    for item in npx_tree.findall(xpath, ns):
+        for aspect in item.findall("*"):
+            tag = aspect.tag.split("}")[1]  # strip ns
             columns.add(tag)
-    # verbose (sorted (columns))
-    print(f"Writing csv {fn}")
-    with open(fn, mode="w", newline="", encoding="utf-8") as csvfile:
-        out = csv.writer(csvfile, dialect="excel")
-        out.writerow(sorted(columns))  # headers
-        # print (sorted(columns))
+    columns = sorted(columns)
 
-        for so in npx_tree.findall(f"./{xpath}", ns):
+    print(f"Writing csv {csv_fn}")
+    with open(csv_fn, mode="w", newline="", encoding="utf-8") as csvfile:
+        out = csv.writer(csvfile, dialect="excel")
+        out.writerow(columns)  # headers
+        # print (columns)
+
+        for item in npx_tree.findall(xpath, ns):
             row = []
-            for aspect in sorted(columns):
-                element = so.find("./npx:" + aspect, ns)
+            for aspect in columns:
+                element = item.find("./npx:" + aspect, ns)
                 if element is not None:
-                    # print (aspect+':'+str(element.text))
                     row.append(element.text)
                 else:
                     row.append("")
-            out.writerow(row)  # headers
+            out.writerow(row)
 
 
-def _saxon(src, xsl, target) -> None:
+def _saxon(src: str, xsl: str, target: str) -> None:
+    """
+    My usual hack to use saxon from Python.
+
+    Assumes there is java in path.
+    """
+
     cmd = f"java -Xmx1450m -jar {saxLib} -s:{src} -xsl:{xsl} -o:{target}"
     print(cmd)
 
@@ -93,10 +104,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--force",
-        help="Force. Overwrite existing files.",
+        help="Overwrite existing files",
         action="store_true",
         default=False,
     )
     args = parser.parse_args()
-
     main(args.input, force=args.force)
