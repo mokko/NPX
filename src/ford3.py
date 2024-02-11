@@ -27,20 +27,27 @@ def main(src: str, *, force: bool = False) -> None:
     pro_label = src.parent.parent.name
     pro_dir = Path(__file__).parent.parent / "sdata" / pro_label / date
     npx_fn = pro_dir / Path(src.name).with_suffix(".npx.xml")
-    so_fn = pro_dir / src.stem + "-so.csv"
-    mm_fn = pro_dir / src.stem + "-mm.csv"
-    print(f"About to save at '{npx_fn}'")
+    so_fn = pro_dir / f"{src.stem}-so.csv"
+    mm_fn = pro_dir / f"{src.stem}-mm.csv"
+    print(f"Force parameter is set to '{force}'")
+    print(f"Would write to '{pro_dir}'")
     if not pro_dir.exists():
         pro_dir.mkdir(parents=True)
 
     if not npx_fn.exists() or force is True:
         _saxon(src, mpx2npx, npx_fn)
+    else:
+        print(f"Not writing npx file '{npx_fn.name}'")
 
     if not so_fn or force is True:
         _writeCsv(src=npx_fn, csv_fn=so_fn, xpath="./npx:sammlungsitem")
+    else:
+        print(f"Not writing csv file '{so_fn.name}'")
 
     if not mm_fn or force is True:
         _writeCsv(src=npx_fn, csv_fn=mm_fn, xpath="./npx:multimediaitem")
+    else:
+        print(f"Not writing csv file '{mm_fn.name}'")
 
 
 def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
