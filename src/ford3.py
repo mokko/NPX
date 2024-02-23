@@ -32,8 +32,6 @@ def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
     pro_label = p.parent.parent.name
     pro_dir = Path(__file__).parent.parent / "sdata" / pro_label / date
     npx_fn = pro_dir / Path(p.name).with_suffix(".npx.xml")
-    so_fn = pro_dir / f"{p.stem}-so.csv"
-    mm_fn = pro_dir / f"{p.stem}-mm.csv"
     print(f"* Force parameter is set to '{force}'")
     print(f"* Asset restriction set to '{assets}'")
     print(f"* Using project dir '{pro_dir}'")
@@ -55,16 +53,17 @@ def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
         print(f"* Not overwriting npx file '{npx_fn.name}'")
 
     todo = {
-        "so": {"fn": so_fn, "xpath": "./npx:sammlungsitem"},
-        "mm": {"fn": mm_fn, "xpath": "./npx:multimediaitem"},
+        "so": {"fn": pro_dir / f"{p.stem}-so.csv", "xpath": "./npx:sammlungsitem"},
+        "mm": {"fn": pro_dir / f"{p.stem}-mm.csv", "xpath": "./npx:multimediaitem"},
     }
 
     for each in todo:
-        each2 = todo[each]
-        if force is True or not each2["fn"].exists():
-            _writeCsv(src=npx_fn, csv_fn=each2["fn"], xpath=each2["xpath"])
+        fn = todo[each]["fn"]
+        xpath = todo[each]["xpath"]
+        if force is True or not fn.exists():
+            _writeCsv(src=npx_fn, csv_fn=fn, xpath=xpath)
         else:
-            print(f"* Not overwriting csv file '{each2['fn'].name}'")
+            print(f"* Not overwriting csv file '{fn.name}'")
 
 
 def _saxon(src: str | Path, xsl: str | Path, target: str | Path) -> None:
