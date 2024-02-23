@@ -34,15 +34,14 @@ def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
     npx_fn = pro_dir / Path(p.name).with_suffix(".npx.xml")
     so_fn = pro_dir / f"{p.stem}-so.csv"
     mm_fn = pro_dir / f"{p.stem}-mm.csv"
-    print(f"Force parameter is set to '{force}'")
-    print(f"Asset restriction set to'{assets}'")
-    print(f"Would write to '{pro_dir}'")
+    print(f"* Force parameter is set to '{force}'")
+    print(f"* Asset restriction set to '{assets}'")
+    print(f"* Using project dir '{pro_dir}'")
     if not pro_dir.exists():
         pro_dir.mkdir(parents=True)
 
-    if npx_fn.exists() or force is True:
-        print(f"Not writing npx file '{npx_fn.name}'")
-    else:
+    if force is True or not npx_fn.exists():
+        print(f"* '{npx_fn}' doesn't exist yet.")
         match assets:
             case "smb":
                 _saxon(p, mpx2npx, npx_fn)
@@ -52,16 +51,20 @@ def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
                 raise SyntaxError(
                     f"ERROR: Unknown value for asset restriction: '{assets}'"
                 )
-
-    if not so_fn or force is True:
-        _writeCsv(src=npx_fn, csv_fn=so_fn, xpath="./npx:sammlungsitem")
     else:
-        print(f"Not writing csv file '{so_fn.name}'")
+        print(f"* Not overwriting npx file '{npx_fn.name}'")
 
-    if not mm_fn or force is True:
-        _writeCsv(src=npx_fn, csv_fn=mm_fn, xpath="./npx:multimediaitem")
-    else:
-        print(f"Not writing csv file '{mm_fn.name}'")
+    todo = {
+        "so": {"fn": so_fn, "xpath": "./npx:sammlungsitem"},
+        "mm": {"fn": mm_fn, "xpath": "./npx:multimediaitem"},
+    }
+
+    for each in todo:
+        each2 = todo[each]
+        if force is True or not each2["fn"].exists():
+            _writeCsv(src=npx_fn, csv_fn=each2["fn"], xpath=each2["xpath"])
+        else:
+            print(f"* Not overwriting csv file '{each2['fn'].name}'")
 
 
 def _saxon(src: str | Path, xsl: str | Path, target: str | Path) -> None:
@@ -95,7 +98,7 @@ def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
             columns.add(tag)
     columnsL = sorted(columns)
 
-    print(f"Writing csv {csv_fn}")
+    print(f"* Writing csv {csv_fn}")
     with open(csv_fn, mode="w", newline="", encoding="utf-8") as csvfile:
         out = csv.writer(csvfile, dialect="excel")
         out.writerow(columnsL)  # headers
