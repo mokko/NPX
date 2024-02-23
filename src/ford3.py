@@ -6,6 +6,10 @@ This script writes to
 independent from where it's executed.
 
 Currently we accept only a single file as input.
+
+NEW 
+23.2.2024
+* Added argument for exporting with all or only smb-approved assets.
 """
 import csv
 import os
@@ -15,29 +19,39 @@ import xml.etree.ElementTree as ET
 
 saxLib = os.environ["saxLib"]
 mpx2npx = Path(__file__).parent.parent / "xsl" / "zpx2npx.xsl"
+mpx2npx_all = Path(__file__).parent.parent / "xsl" / "zpx2npx-alleAssets.xsl"
 
 ns = {
     "npx": "http://www.mpx.org/npx",  # npx is no mpx
 }
 
 
-def main(src: str, *, force: bool = False) -> None:
-    src = Path(src)
-    date = src.parent.name
-    pro_label = src.parent.parent.name
+def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
+    p = Path(src)
+    date = p.parent.name  # takes date from source directory, not current date
+    pro_label = p.parent.parent.name
     pro_dir = Path(__file__).parent.parent / "sdata" / pro_label / date
-    npx_fn = pro_dir / Path(src.name).with_suffix(".npx.xml")
-    so_fn = pro_dir / f"{src.stem}-so.csv"
-    mm_fn = pro_dir / f"{src.stem}-mm.csv"
+    npx_fn = pro_dir / Path(p.name).with_suffix(".npx.xml")
+    so_fn = pro_dir / f"{p.stem}-so.csv"
+    mm_fn = pro_dir / f"{p.stem}-mm.csv"
     print(f"Force parameter is set to '{force}'")
+    print(f"Asset restriction set to'{assets}'")
     print(f"Would write to '{pro_dir}'")
     if not pro_dir.exists():
         pro_dir.mkdir(parents=True)
 
-    if not npx_fn.exists() or force is True:
-        _saxon(src, mpx2npx, npx_fn)
-    else:
+    if npx_fn.exists() or force is True:
         print(f"Not writing npx file '{npx_fn.name}'")
+    else:
+        match assets:
+            case "smb":
+                _saxon(p, mpx2npx, npx_fn)
+            case "all":
+                _saxon(p, mpx2npx_all, npx_fn)
+            case _:
+                raise SyntaxError(
+                    f"ERROR: Unknown value for asset restriction: '{assets}'"
+                )
 
     if not so_fn or force is True:
         _writeCsv(src=npx_fn, csv_fn=so_fn, xpath="./npx:sammlungsitem")
@@ -48,6 +62,21 @@ def main(src: str, *, force: bool = False) -> None:
         _writeCsv(src=npx_fn, csv_fn=mm_fn, xpath="./npx:multimediaitem")
     else:
         print(f"Not writing csv file '{mm_fn.name}'")
+
+
+def _saxon(src: str | Path, xsl: str | Path, target: str | Path) -> None:
+    """
+    My usual hack to use saxon from Python.
+
+    Assumes there is java in path.
+    """
+
+    cmd = f"java -Xmx1450m -jar {saxLib} -s:{src} -xsl:{xsl} -o:{target}"
+    print(cmd)
+
+    subprocess.run(
+        cmd, check=True  # , stderr=subprocess.STDOUT
+    )  # overwrites output file without saying anything
 
 
 def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
@@ -64,38 +93,23 @@ def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
         for aspect in item.findall("*"):
             tag = aspect.tag.split("}")[1]  # strip ns
             columns.add(tag)
-    columns = sorted(columns)
+    columnsL = sorted(columns)
 
     print(f"Writing csv {csv_fn}")
     with open(csv_fn, mode="w", newline="", encoding="utf-8") as csvfile:
         out = csv.writer(csvfile, dialect="excel")
-        out.writerow(columns)  # headers
-        # print (columns)
+        out.writerow(columnsL)  # headers
+        # print (columnsL)
 
         for item in npx_tree.findall(xpath, ns):
             row = []
-            for aspect in columns:
-                element = item.find("./npx:" + aspect, ns)
+            for aspectN in columnsL:
+                element = item.find(f"./npx:{aspectN}", ns)
                 if element is not None:
                     row.append(element.text)
                 else:
                     row.append("")
             out.writerow(row)
-
-
-def _saxon(src: str, xsl: str, target: str) -> None:
-    """
-    My usual hack to use saxon from Python.
-
-    Assumes there is java in path.
-    """
-
-    cmd = f"java -Xmx1450m -jar {saxLib} -s:{src} -xsl:{xsl} -o:{target}"
-    print(cmd)
-
-    subprocess.run(
-        cmd, check=True  # , stderr=subprocess.STDOUT
-    )  # overwrites output file without saying anything
 
 
 if __name__ == "__main__":
@@ -115,5 +129,12 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
     )
+    parser.add_argument(
+        "-r",
+        "--restriction",
+        help="Restrict the multimedia items",
+        choices=["smb", "all"],
+        default="smb",
+    )
     args = parser.parse_args()
-    main(args.input, force=args.force)
+    main(args.input, force=args.force, assets=args.restriction)
