@@ -21,7 +21,7 @@ saxLib = os.environ["saxLib"]
 mpx2npx = Path(__file__).parent.parent / "xsl" / "zpx2npx.xsl"
 mpx2npx_all = Path(__file__).parent.parent / "xsl" / "zpx2npx-alleAssets.xsl"
 
-ns = {
+NSMAP = {
     "npx": "http://www.mpx.org/npx",  # npx is no mpx
 }
 
@@ -53,8 +53,8 @@ def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
         print(f"* Not overwriting npx file '{npx_fn.name}'")
 
     todo = {
-        "so": {"fn": pro_dir / f"{p.stem}-so.csv", "xpath": "./npx:sammlungsitem"},
-        "mm": {"fn": pro_dir / f"{p.stem}-mm.csv", "xpath": "./npx:multimediaitem"},
+        "so": {"fn": pro_dir / f"{p.stem}-so.csv", "xpath": "./npx:sammlungsobjekt"},
+        "mm": {"fn": pro_dir / f"{p.stem}-mm.csv", "xpath": "./npx:multimediaobjekt"},
     }
 
     for each in todo:
@@ -88,11 +88,11 @@ def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
     npx elements under the moduleItem level are aspects of the object.
     """
     columns = set()  # distinct list for columns for csv table
-    npx_tree = ET.parse(src)
-
+    npx = ET.parse(src)
     # Looping thru all records to determine all attributes
-    for item in npx_tree.findall(xpath, ns):
-        for aspect in item.findall("*"):
+    for itemN in npx.findall(xpath, NSMAP):
+        # print(f"***{itemN}")
+        for aspect in itemN.findall("*"):
             tag = aspect.tag.split("}")[1]  # strip ns
             columns.add(tag)
     columnsL = sorted(columns)
@@ -101,12 +101,12 @@ def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
     with open(csv_fn, mode="w", newline="", encoding="utf-8") as csvfile:
         out = csv.writer(csvfile, dialect="excel")
         out.writerow(columnsL)  # headers
-        # print (columnsL)
-
-        for item in npx_tree.findall(xpath, ns):
+        # print (f"{columnsL}")
+        for itemN in npx.findall(xpath, NSMAP):
             row = []
             for aspectN in columnsL:
-                element = item.find(f"./npx:{aspectN}", ns)
+                # print(f"{aspectN}")
+                element = itemN.find(f"./npx:{aspectN}", NSMAP)
                 if element is not None:
                     row.append(element.text)
                 else:
