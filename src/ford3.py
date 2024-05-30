@@ -57,25 +57,22 @@ def main(
     else:
         print(f"* Not overwriting npx file '{npx_fn.name}'")
 
-    if waf:
-        _saxon(p, mpx2waf, waf_fn)
-
     todo = {
         "so": {"fn": pro_dir / f"{p.stem}-so.csv", "xpath": "./npx:sammlungsobjekt"},
         "mm": {"fn": pro_dir / f"{p.stem}-mm.csv", "xpath": "./npx:multimediaobjekt"},
-        "waf": {"fn": pro_dir / f"{p.stem}-waf.csv", "xpath": "./npx:sammlungsobjekt"},
     }
-
-    if not waf:
-        del todo["waf"]
 
     for each in todo:
         fn = todo[each]["fn"]
         xpath = todo[each]["xpath"]
-        if force is True or not fn.exists():
+        if force or not fn.exists():
             _writeCsv(src=npx_fn, csv_fn=fn, xpath=xpath)
         else:
             print(f"* Not overwriting csv file '{fn.name}'")
+    if waf:
+        _saxon(p, mpx2waf, waf_fn)
+        csv_fn = pro_dir / f"{p.stem}-waf.csv"
+        _writeCsv(src=waf_fn, csv_fn=csv_fn, xpath="./npx:sammlungsobjekt")
 
 
 #
