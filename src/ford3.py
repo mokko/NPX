@@ -12,13 +12,14 @@ NEW
 * Added argument for exporting with all or only smb-approved assets.
 """
 import csv
-import os
+
+# import os
 from pathlib import Path
-import subprocess
+from saxonche import PySaxonProcessor
 import xml.etree.ElementTree as ET
 
-saxLib = os.environ["saxLib"]
 mpx2npx = Path(__file__).parent.parent / "xsl" / "zpx2npx.xsl"
+mpx2waf = Path(__file__).parent.parent / "xsl" / "zpx2waf.xsl"
 mpx2npx_all = Path(__file__).parent.parent / "xsl" / "zpx2npx-alleAssets.xsl"
 
 NSMAP = {
@@ -26,15 +27,19 @@ NSMAP = {
 }
 
 
-def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
+def main(
+    src: str | Path, *, force: bool = False, assets: str = "smb", waf: bool = False
+) -> None:
     p = Path(src)
     date = p.parent.name  # takes date from source directory, not current date
     pro_label = p.parent.parent.name
     pro_dir = Path(__file__).parent.parent / "sdata" / pro_label / date
     npx_fn = pro_dir / Path(p.name).with_suffix(".npx.xml")
+    waf_fn = pro_dir / Path(p.name).with_suffix(".waf.xml")
     print(f"* Force parameter is set to '{force}'")
     print(f"* Asset restriction set to '{assets}'")
     print(f"* Using project dir '{pro_dir}'")
+    print(f"* For waf '{waf}'")
     if not pro_dir.exists():
         pro_dir.mkdir(parents=True)
 
@@ -52,10 +57,17 @@ def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
     else:
         print(f"* Not overwriting npx file '{npx_fn.name}'")
 
+    if waf:
+        _saxon(p, mpx2waf, waf_fn)
+
     todo = {
         "so": {"fn": pro_dir / f"{p.stem}-so.csv", "xpath": "./npx:sammlungsobjekt"},
         "mm": {"fn": pro_dir / f"{p.stem}-mm.csv", "xpath": "./npx:multimediaobjekt"},
+        "waf": {"fn": pro_dir / f"{p.stem}-waf.csv", "xpath": "./npx:sammlungsobjekt"},
     }
+
+    if not waf:
+        del todo["waf"]
 
     for each in todo:
         fn = todo[each]["fn"]
@@ -66,19 +78,23 @@ def main(src: str | Path, *, force: bool = False, assets: str = "smb") -> None:
             print(f"* Not overwriting csv file '{fn.name}'")
 
 
+#
+# somewhat private
+#
+
+
 def _saxon(src: str | Path, xsl: str | Path, target: str | Path) -> None:
     """
-    My usual hack to use saxon from Python.
-
-    Assumes there is java in path.
+    New hack to using saxonche.
     """
-
-    cmd = f"java -Xmx1450m -jar {saxLib} -s:{src} -xsl:{xsl} -o:{target}"
-    print(cmd)
-
-    subprocess.run(
-        cmd, check=True  # , stderr=subprocess.STDOUT
-    )  # overwrites output file without saying anything
+    xml_file_name = Path(src).absolute().as_uri()
+    with PySaxonProcessor(license=False) as proc:
+        xsltproc = proc.new_xslt30_processor()
+        executable = xsltproc.compile_stylesheet(stylesheet_file=str(xsl))
+        xml = proc.parse_xml(xml_file_name=xml_file_name)
+        result_tree = executable.apply_templates_returning_file(
+            xdm_node=xml, output_file=str(target)
+        )
 
 
 def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
@@ -132,6 +148,12 @@ if __name__ == "__main__":
         default=False,
     )
     parser.add_argument(
+        "-w",
+        "--waf",
+        help="Add another file for wafs",
+        action="store_true",
+    )
+    parser.add_argument(
         "-r",
         "--restriction",
         help="Restrict the multimedia items",
@@ -139,4 +161,4 @@ if __name__ == "__main__":
         default="smb",
     )
     args = parser.parse_args()
-    main(args.input, force=args.force, assets=args.restriction)
+    main(args.input, force=args.force, assets=args.restriction, waf=args.waf)
