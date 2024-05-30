@@ -43,7 +43,7 @@ def main(
     if not pro_dir.exists():
         pro_dir.mkdir(parents=True)
 
-    if force is True or not npx_fn.exists():
+    if force or not npx_fn.exists():
         print(f"* '{npx_fn}' doesn't exist yet.")
         match assets:
             case "smb":
@@ -70,9 +70,12 @@ def main(
         else:
             print(f"* Not overwriting csv file '{fn.name}'")
     if waf:
-        _saxon(p, mpx2waf, waf_fn)
+        if force or not waf_fn.exists():
+            _saxon(p, mpx2waf, waf_fn)
+
         csv_fn = pro_dir / f"{p.stem}-waf.csv"
-        _writeCsv(src=waf_fn, csv_fn=csv_fn, xpath="./npx:sammlungsobjekt")
+        if force or not csv_fn.exists():
+            _writeCsv(src=waf_fn, csv_fn=csv_fn, xpath="./npx:sammlungsobjekt")
 
 
 #
