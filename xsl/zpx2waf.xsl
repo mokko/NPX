@@ -17,11 +17,12 @@
         </npx>
     </xsl:template>
 
-<!-- 
--->
-
 	<xsl:template match="/z:application/z:modules/z:module[@name='Object']/z:moduleItem">
 		<sammlungsobjekt>
+			<!-- we need the proper id -->
+			<objId>
+				<xsl:value-of select="@id"/>
+			</objId>
 			<xsl:for-each select="z:repeatableGroup[
 				@name='ObjConservationTermsGrp'
 			]/z:repeatableGroupItem[
