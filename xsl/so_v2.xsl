@@ -7,8 +7,6 @@
     exclude-result-prefixes="npx z">
 	<xsl:import href="konsAuflagen_v2.xsl"/>
 
-	
-	
 	<!-- TOP -->
 	<xsl:template match="/z:application/z:modules/z:module[@name='Object']/z:moduleItem">
 		<xsl:variable name="id" select="@id"/>
@@ -43,6 +41,13 @@
 			<bearbDatum>
 				<xsl:value-of select="z:systemField[@name='__lastModified']/z:value"/>
 			</bearbDatum>
+
+			<!-- Beleuchtung -->
+			<xsl:apply-templates select="z:repeatableGroup[
+				@name = 'ObjIlluminationGrp'
+				and z:repeatableGroupItem/z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Aktuell'
+			]"/>
+			
 			<bereich>
 				<xsl:value-of select="z:vocabularyReference[@name = 'ObjOrgGroupVoc']/z:vocabularyReferenceItem/@name"/>
 			</bereich>
@@ -74,6 +79,18 @@
 					</xsl:for-each>
 				</erwerbNotizAusgabe>
 			</xsl:if>
+			
+			
+			<!--  
+						and 
+						
+												and /z:repeatableGroupItem/z:vocabularyReference[
+							@name = 'TypeVoc'
+						]/z:vocabularyReferenceItem[
+							z:formattedValue = 'Daten freigegeben für SMB-digital'
+						] 
+
+						-->
 			<!-- geogrBezug-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjGeograficGrp']"/>
 			<!-- identNr-->
@@ -108,6 +125,42 @@
 				<xsl:value-of select="z:dataField[@name='ObjTechnicalTermClb']/z:value"/>
 			</sachbegriff>
 
+			<SMBfreigabe>
+				<xsl:choose>
+					<xsl:when test="z:repeatableGroup[
+						@name = 'ObjPublicationGrp'
+					]/z:repeatableGroupItem[
+						z:vocabularyReference[
+							@name = 'PublicationVoc'
+						]/z:vocabularyReferenceItem[
+							z:formattedValue = 'Ja'
+						]
+					][
+						z:vocabularyReference[
+							@name = 'TypeVoc'
+						]/z:vocabularyReferenceItem[
+							z:formattedValue = 'Daten freigegeben für SMB-digital'
+						]
+					]">
+						<xsl:text>ja</xsl:text>					
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:text>nein</xsl:text>
+					</xsl:otherwise>
+				</xsl:choose> 	
+			</SMBfreigabe>
+
+			<standardbild>
+				<xsl:value-of select="z:moduleReference[
+					@name ='ObjMultimediaRef'
+				]/z:moduleReferenceItem[
+					z:dataField[
+						@name = 'ThumbnailBoo'
+					]/z:value eq 'true'
+				]/@moduleItemId"/>
+			</standardbild>
+
+
 			<!-- 
 				Aus Sicherheitsgründen sollen nur Standorte aus HF Ausstellungen an SHF übergeben werden. 
 				Cornelia möchte lieber alle Standorte auf einmal und so lange leere Felder.
@@ -128,6 +181,14 @@
 			<verwaltendeInstitution>
 				<xsl:value-of select="z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem/z:formattedValue"/>
 			</verwaltendeInstitution>
+			
+			<!-- zustandKurz-->
+
+			<xsl:apply-templates select="z:repeatableGroup[
+				@name = 'ObjConditionGrp'
+			]/z:repeatableGroupItem[
+				z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'aktuell'
+			]"/>
 		</sammlungsobjekt>
 	</xsl:template>
 

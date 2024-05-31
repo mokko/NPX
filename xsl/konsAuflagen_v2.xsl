@@ -10,12 +10,69 @@
     <xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes" />
     <xsl:strip-space elements="*" />
 
-    <xsl:template match="/">
-        <npx version="20240529">
-			<!--include only smb-freigebene medien!-->
-			<xsl:apply-templates select="/z:application/z:modules/z:module[@name='Object']/z:moduleItem" />
-        </npx>
-    </xsl:template>
+	<!-- zustandKurz-->
+	<xsl:template match="z:repeatableGroup[
+			@name='ObjConditionGrp'
+		]/z:repeatableGroupItem[
+			z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'aktuell'
+		]">
+		<!--xsl:message>
+			<xsl:text>ZUUUUSTAND KURZ </xsl:text>
+		</xsl:message-->
+		<xsl:variable name="condition" select="z:dataField[@name='ConditionClb']"/>
+		<xsl:variable name="notes" select="z:dataField[@name='NotesClb']"/>
+		<zustandKurz>
+			<xsl:if test="$condition ne ''">
+				<xsl:value-of select="$condition"/>
+			</xsl:if>
+			<xsl:if test="$condition ne '' and $notes ne ''">
+				<xsl:text>; </xsl:text>
+			</xsl:if>
+			<xsl:if test="$notes ne ''">
+				<xsl:value-of select="$notes"/>
+			</xsl:if>
+		</zustandKurz>
+	</xsl:template>
+
+	<!-- Beleuchtung-->
+	<xsl:template match="z:repeatableGroup[
+			@name = 'ObjIlluminationGrp'  		
+		]/z:repeatableGroupItem[
+			z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Aktuell'
+		]">
+		<xsl:variable name="text" select="z:dataField[@name='NotesClb']"/>
+		<xsl:variable name="uv" select="z:vocabularyReference[@name='UVVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+		<xsl:variable name="lux" select="z:vocabularyReference[@name='LuxVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+
+		<xsl:message>
+			<xsl:text>BELEUCHTUNG: </xsl:text>
+			<xsl:value-of select="$text"/>
+			<xsl:text>|</xsl:text>
+			<xsl:value-of select="$uv"/>
+			<xsl:text>|</xsl:text>
+			<xsl:value-of select="$lux"/>
+		</xsl:message>
+
+		<beleuchtung>
+			<xsl:if test="$text ne ''">
+				<xsl:value-of select="$text"/>
+			</xsl:if>
+			<xsl:if test="$uv ne '' or lux ne ''">
+				<xsl:text>; </xsl:text>
+			</xsl:if>
+			<xsl:if test="$uv ne '' or lux ne ''">
+				<xsl:text>UV: </xsl:text>
+				<xsl:value-of select="$uv"/>
+			</xsl:if>
+			<xsl:if test="$uv ne '' and $lux ne ''">
+				<xsl:text>; </xsl:text>
+			</xsl:if>
+			<xsl:if test="$lux ne ''">
+				<xsl:text>Lux: </xsl:text>
+				<xsl:value-of select="$lux"/>
+			</xsl:if>
+		</beleuchtung>
+	</xsl:template>
 
 	<xsl:template match="z:repeatableGroup[
 				@name='ObjConservationTermsGrp'
@@ -26,62 +83,49 @@
 					z:formattedValue = 'aktuell'
 				]
 			]">
-		<xsl:message>GET HERE</xsl:message>
-		<konservatorischeAuflagen>
-			<!-- there should be only ever one current group in ObjConservationTermsGrp -->
-			<beleuchtung>
-				<!-- todo-->
-			</beleuchtung>
-			<bemerkungen>
-				<xsl:value-of select="dataField[@name='NotesClb']/z:value"/>
-			</bemerkungen>
-			<bemLeih>
-				<xsl:value-of select="dataField[@name='LoanNotesClb']/z:value"/>
-			</bemLeih>
-			<datum>
-				<xsl:value-of select="z:dataField[@name='DateDat']/z:formattedLanguage"/>
-			</datum>
-			<handling>
-				<xsl:value-of select="dataField[@name='HandlingClb']/z:value"/>
-			</handling>
-			<lagerung>
-				<xsl:value-of select="dataField[@name='StorageClb']/z:value"/>
-			</lagerung>
-			<leihfähigkeit>
-				<!--doppelt-->
-				<xsl:value-of select="z:vocabularyReference[@name='LoanVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
-			</leihfähigkeit>
-			<luftfeuchte>
-				<xsl:value-of select="z:vocabularyReference[@name='HumidityVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
-			</luftfeuchte>
-			<montageRahmenSockel>
-				<xsl:value-of select="dataField[@name='MontageFramingClb']/z:value"/>
-			</montageRahmenSockel>
-			<präsentation>
-				<!-- todo-->
-			</präsentation>
-			<schädBelast>
-				<xsl:value-of select="z:vocabularyReference[@name='ContaminantVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
-			</schädBelast>
-			<sicherheit>
-				<xsl:value-of select="dataField[@name='SecurityClb']/z:value"/>
-			</sicherheit>
-			<temperatur>
-				<xsl:value-of select="z:vocabularyReference[@name='TemperatureVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
-			</temperatur>
-			<transport>
-				<xsl:value-of select="dataField[@name='TransportClb']/z:value"/>
-			</transport>
-			<verpackung>
-				<xsl:value-of select="dataField[@name='PackingClb']/z:value"/>
-			</verpackung>
-			<!-- nur für aktuell-->
-			<zustandKurz>
-				<!-- todo-->
-			</zustandKurz>
-			<zustandKurzBemerkung>
-				<!-- todo-->
-			</zustandKurzBemerkung>
-		</konservatorischeAuflagen>
+		<!-- there should be only ever one current group in ObjConservationTermsGrp -->
+		<KABemerkungen>
+			<xsl:value-of select="z:dataField[@name='NotesClb']/z:value"/>
+		</KABemerkungen>
+		<KABemLeih>
+			<xsl:value-of select="z:dataField[@name='LoanNotesClb']/z:value"/>
+		</KABemLeih>
+		<KADatum>
+			<xsl:value-of select="z:dataField[@name='DateDat']/z:formattedLanguage"/>
+		</KADatum>
+		<KAHandling>
+			<xsl:value-of select="z:dataField[@name='HandlingClb']/z:value"/>
+		</KAHandling>
+		<KALagerung>
+			<xsl:value-of select="z:dataField[@name='StorageClb']/z:value"/>
+		</KALagerung>
+		<KALeihfähigkeit>
+			<!--doppelt-->
+			<xsl:value-of select="z:vocabularyReference[@name='LoanVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+		</KALeihfähigkeit>
+		<KALuftfeuchte>
+			<xsl:value-of select="z:vocabularyReference[@name='HumidityVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+		</KALuftfeuchte>
+		<KAMontageRahmenSockel>
+			<xsl:value-of select="z:dataField[@name='MontageFramingClb']/z:value"/>
+		</KAMontageRahmenSockel>
+		<KAPräsentation>
+			<xsl:value-of select="z:dataField[@name='DisplayClb']/z:value"/>
+		</KAPräsentation>
+		<KASchädBelast>
+			<xsl:value-of select="z:vocabularyReference[@name='ContaminantVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+		</KASchädBelast>
+		<KASicherheit>
+			<xsl:value-of select="z:dataField[@name='SecurityClb']/z:value"/>
+		</KASicherheit>
+		<KATemperatur>
+			<xsl:value-of select="z:vocabularyReference[@name='TemperatureVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+		</KATemperatur>
+		<KATransport>
+			<xsl:value-of select="z:dataField[@name='TransportClb']/z:value"/>
+		</KATransport>
+		<KAVerpackung>
+			<xsl:value-of select="z:dataField[@name='PackingClb']/z:value"/>
+		</KAVerpackung>
 	</xsl:template>
 </xsl:stylesheet>
