@@ -1,16 +1,22 @@
 """
 A new script to transform mpx data to npx and csv
 
-This script writes to 
+This script writes to
     zml2npx/sdata/ProjectLabel/20240209 etc.
 independent from where it's executed.
 
 Currently we accept only a single file as input.
 
-NEW 
+NEW
+31.5.2024
+* New mapping (v2) and old mapping (v1)
+29.5.2024
+* from java saxon to saxonche
 23.2.2024
 * Added argument for exporting with all or only smb-approved assets.
+
 """
+
 import csv
 
 # import os
@@ -18,48 +24,64 @@ from pathlib import Path
 from saxonche import PySaxonProcessor
 import xml.etree.ElementTree as ET
 
-mpx2npx = Path(__file__).parent.parent / "xsl" / "zpx2npx.xsl"
-mpx2waf = Path(__file__).parent.parent / "xsl" / "zpx2waf.xsl"
-mpx2npx_all = Path(__file__).parent.parent / "xsl" / "zpx2npx-alleAssets.xsl"
-
 NSMAP = {
     "npx": "http://www.mpx.org/npx",  # npx is no mpx
 }
 
 
 def main(
-    src: str | Path, *, force: bool = False, assets: str = "smb", waf: bool = False
+    src: str | Path, *, force: bool = False, assets: str = "smb", version: int = 1
 ) -> None:
     p = Path(src)
     date = p.parent.name  # takes date from source directory, not current date
     pro_label = p.parent.parent.name
     pro_dir = Path(__file__).parent.parent / "sdata" / pro_label / date
-    npx_fn = pro_dir / Path(p.name).with_suffix(".npx.xml")
-    waf_fn = pro_dir / Path(p.name).with_suffix(".waf.xml")
+    npx_fn = pro_dir / f"{p.stem}_v{version}.npx.xml"
     print(f"* Force parameter is set to '{force}'")
     print(f"* Asset restriction set to '{assets}'")
     print(f"* Using project dir '{pro_dir}'")
-    print(f"* For waf '{waf}'")
+    print(f"* Mapping version {version}")
+
+    xsl_dir = Path(__file__).parent.parent / "xsl"
+    match version:
+        case 1:
+            if assets == "smb":
+                xsl_fn = xsl_dir / "npx_v1.xsl"
+            elif assets == "all":
+                xsl_fn = xsl_dir / "npx_v1-alleAssets.xsl"
+            else:
+                raise SyntaxError(f"Unknown asset restriction type {assets}")
+
+        case 2:
+            if assets == "smb":
+                xsl_fn = xsl_dir / "npx_v2.xsl"
+            elif assets == "all":
+                xsl_fn = xsl_dir / "npx_v2-alleAssets.xsl"
+            else:
+                raise SyntaxError(f"Unknown asset restriction type {assets}")
+        case _:
+            raise SyntaxError(f"Unknown version {version}")
+
+    print(f"* Using xsl entry {xsl_fn}")
+
     if not pro_dir.exists():
         pro_dir.mkdir(parents=True)
 
     if force or not npx_fn.exists():
-        print(f"* '{npx_fn}' doesn't exist yet.")
-        match assets:
-            case "smb":
-                _saxon(p, mpx2npx, npx_fn)
-            case "all":
-                _saxon(p, mpx2npx_all, npx_fn)
-            case _:
-                raise SyntaxError(
-                    f"ERROR: Unknown value for asset restriction: '{assets}'"
-                )
+        print(f"* Writing npx '{npx_fn}'")
+        _saxon(p, xsl_fn, npx_fn)
     else:
         print(f"* Not overwriting npx file '{npx_fn.name}'")
 
     todo = {
-        "so": {"fn": pro_dir / f"{p.stem}-so.csv", "xpath": "./npx:sammlungsobjekt"},
-        "mm": {"fn": pro_dir / f"{p.stem}-mm.csv", "xpath": "./npx:multimediaobjekt"},
+        "so": {
+            "fn": pro_dir / f"{p.stem}_v{version}-so.csv",
+            "xpath": "./npx:sammlungsobjekt",
+        },
+        "mm": {
+            "fn": pro_dir / f"{p.stem}_v{version}-mm.csv",
+            "xpath": "./npx:multimediaobjekt",
+        },
     }
 
     for each in todo:
@@ -69,13 +91,6 @@ def main(
             _writeCsv(src=npx_fn, csv_fn=fn, xpath=xpath)
         else:
             print(f"* Not overwriting csv file '{fn.name}'")
-    if waf:
-        if force or not waf_fn.exists():
-            _saxon(p, mpx2waf, waf_fn)
-
-        csv_fn = pro_dir / f"{p.stem}-waf.csv"
-        if force or not csv_fn.exists():
-            _writeCsv(src=waf_fn, csv_fn=csv_fn, xpath="./npx:sammlungsobjekt")
 
 
 #
@@ -148,10 +163,12 @@ if __name__ == "__main__":
         default=False,
     )
     parser.add_argument(
-        "-w",
-        "--waf",
-        help="Add another file for wafs",
-        action="store_true",
+        "-v",
+        "--version",
+        type=int,
+        help="Specify version of mapping",
+        choices=[1, 2],
+        default=1,
     )
     parser.add_argument(
         "-r",
@@ -161,4 +178,4 @@ if __name__ == "__main__":
         default="smb",
     )
     args = parser.parse_args()
-    main(args.input, force=args.force, assets=args.restriction, waf=args.waf)
+    main(args.input, force=args.force, assets=args.restriction, version=args.version)

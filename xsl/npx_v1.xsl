@@ -6,8 +6,8 @@
 	xmlns:z="http://www.zetcom.com/ria/ws/module"
 
     exclude-result-prefixes="npx z">
-	<xsl:import href="mm.xsl"/>
-	<xsl:import href="so.xsl"/>
+	<xsl:import href="mm_v1.xsl"/>
+	<xsl:import href="so_v1.xsl"/>
 	
     <xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes" />
     <xsl:strip-space elements="*" />
@@ -29,7 +29,7 @@
 	-->
 
     <xsl:template match="/">
-        <npx version="20211206">
+        <npx version="20240529">
 			<!--include only smb-freigebene medien!-->
 			<xsl:apply-templates select="/z:application/z:modules/z:module[@name = 'Multimedia']/z:moduleItem[
 				z:repeatableGroup[@name = 'MulApprovalGrp']

@@ -1,16 +1,16 @@
 """
-A "conveyor belt" to convert output of MpApi into the SHF exchange format; 
-that is a simple chain of steps that are strung one after the other, typically 
+A "conveyor belt" to convert output of MpApi into the SHF exchange format;
+that is a simple chain of steps that are strung one after the other, typically
 a series of xslt transformations.
 
 Input: scans pwd and looks for {date}/*-clean-*.xml wth the specified date
-Writes many output files, typically one for every step 
+Writes many output files, typically one for every step
 
 Design Considerations
-* This little script is supposed to grow with time and has been doing so since May 2021; 
+* This little script is supposed to grow with time and has been doing so since May 2021;
   perhaps eventually we'll use pipeline again.
 * We want to send SHF the least amount of packages (files) possible
-* Don't overwrite files already written by a previous iteration; if user wants an 
+* Don't overwrite files already written by a previous iteration; if user wants an
   overwrite, they have to delete files manually.
 * Number output files by step
 
@@ -18,7 +18,7 @@ Design Considerations
 sdata/HF-AKu-Module/20210521
 sdata/HF-AKu-StuSam/20210521/1.clean-group30356.xml
 {DataDir}/{ExhibitOrGroupDir}/{DateDir}/{many *-clean-*.npx.xml files}
-sdata/pix_HF-AKu-Module 
+sdata/pix_HF-AKu-Module
 sdata/{individual pix dirs}
 
 #target
@@ -29,7 +29,7 @@ sdata/SHF/pix/1.jpg #many image files
 USAGE
     cd MpApi/sdata
     ford2.py --date 20210524 --output SHF
- 
+
 CURRENT STEPS
     (1) convert individual pack.zml files to npx
     (2) bundle everything to a superpack
@@ -41,7 +41,7 @@ CURRENT STEPS
 
 RECENT CHANGES
  Use new output dir in C:\m3\zpx2npx\sdata -> still cd to MpApi\sdata dir to execute!
- 
+
 Todo
  improve logging
 """

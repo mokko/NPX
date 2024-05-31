@@ -5,13 +5,16 @@
     xmlns:npx="http://www.mpx.org/npx"
 	xmlns:z="http://www.zetcom.com/ria/ws/module"
     exclude-result-prefixes="npx z">
+	<xsl:import href="konsAuflagen_v2.xsl"/>
+
+	
 	
 	<!-- TOP -->
 	<xsl:template match="/z:application/z:modules/z:module[@name='Object']/z:moduleItem">
 		<xsl:variable name="id" select="@id"/>
-		<xsl:message>
+		<!--xsl:message>
 			<xsl:value-of select="$id"/>
-		</xsl:message>
+		</xsl:message-->
 		<sammlungsobjekt>
 			<!-- anzahlTeile-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjNumberObjectsGrp']"/>
@@ -81,6 +84,10 @@
 			<ikonografieKurz>
 				<xsl:value-of select="z:dataField[@name='ObjIconographyContentBriefClb']/z:value"/>
 			</ikonografieKurz>
+
+			<!--konserv. Auflagen-->
+			<xsl:apply-templates select="z:repeatableGroup[
+				@name='ObjConservationTermsGrp']"/>		
 			<!--maße -->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjDimAllGrp']"/>
 			<!--materialTechnik-->
@@ -115,8 +122,9 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectTitleGrp']"/>
 
 			<!--veräußerer-->
-			<xsl:apply-templates select="z:moduleReference[@name='ObjPerAssociationRef' and 
-			./z:moduleReferenceItem/z:vocabularyReference/z:vocabularyReferenceItem/@name='Veräußerer']"/>
+			<xsl:apply-templates select="z:moduleReference[
+				@name='ObjPerAssociationRef' and 
+			./z:moduleReferenceItem/z:vocabularyReference/z:vocabularyReferenceItem/@name='Veräußerung']"/>
 			<verwaltendeInstitution>
 				<xsl:value-of select="z:moduleReference[@name='ObjOwnerRef']/z:moduleReferenceItem/z:formattedValue"/>
 			</verwaltendeInstitution>
@@ -147,10 +155,10 @@
 			<xsl:for-each select="z:moduleReferenceItem">
 				<!-- 20220524 explicit order -->
 				<xsl:sort select="z:dataField[@name='SortLnu']/z:value" data-type="number" order="ascending"/>
-				<xsl:message>
+				<!-- xsl:message>
 					<xsl:text>Beteiligte Sort: </xsl:text>
 					<xsl:value-of select="z:dataField[@name='SortLnu']/z:value"/>
-				</xsl:message>
+				</xsl:message-->
 				<xsl:variable name="role" select="z:vocabularyReference[@name='RoleVoc']/z:vocabularyReferenceItem/@name"/>
 				<xsl:value-of select="substring-before(z:formattedValue, concat(', ', $role))"/>
 				<xsl:text> [</xsl:text>
