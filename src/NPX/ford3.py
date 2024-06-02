@@ -18,8 +18,6 @@ NEW
 """
 
 import csv
-
-# import os
 from pathlib import Path
 from saxonche import PySaxonProcessor
 import xml.etree.ElementTree as ET
@@ -29,7 +27,7 @@ NSMAP = {
 }
 
 
-def main(
+def ford3(
     src: str | Path, *, force: bool = False, assets: str = "smb", version: int = 1
 ) -> None:
     p = Path(src)
@@ -145,37 +143,4 @@ def _writeCsv(*, src: Path, csv_fn: Path, xpath: str):
             out.writerow(row)
 
 
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Automation for SHF chain")
-    parser.add_argument(
-        "-i",
-        "--input",
-        required=True,
-        help="Source file with Zetcom data to be transformed into npx/csv",
-    )
-    parser.add_argument(
-        "-f",
-        "--force",
-        help="Overwrite existing files",
-        action="store_true",
-        default=False,
-    )
-    parser.add_argument(
-        "-v",
-        "--version",
-        type=int,
-        help="Specify version of mapping",
-        choices=[1, 2],
-        default=1,
-    )
-    parser.add_argument(
-        "-r",
-        "--restriction",
-        help="Restrict the multimedia items",
-        choices=["smb", "all"],
-        default="smb",
-    )
-    args = parser.parse_args()
-    main(args.input, force=args.force, assets=args.restriction, version=args.version)
+#if __name__ == "__main__":

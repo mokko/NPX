@@ -1,0 +1,28 @@
+[build-system]
+requires = ["flit_core >=3.2"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "NPX"
+authors = [{name = "Maurice Mengel", email = "mauricemengel@gmail.com"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
+dynamic = ["version", "description"]
+keywords = ["museum", "csv"]
+dependencies = [
+	"flit",
+    "lxml >=4.8.0", #pathlike objects
+    "requests >=2.6",
+]
+[project.optional-dependencies]
+test = [
+	"tomli >= 2.0.0", # only required for python_version < 3.11
+    "pytest >=2.7.3",
+]
+
+[project.scripts]
+ford = 'NPX:ford'
+
+[tool.flit.sdist]
+include = ["src/NPX/__init__.py"] # windows is strange with capital letters

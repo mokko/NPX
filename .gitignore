@@ -2,3 +2,4 @@ sdata/*
 *.xml
 bak/*
 *.csv
+dist/*
