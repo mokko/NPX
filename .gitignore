@@ -3,3 +3,4 @@ sdata/*
 bak/*
 *.csv
 dist/*
+__pycache__

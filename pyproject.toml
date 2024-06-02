@@ -24,5 +24,5 @@ test = [
 [project.scripts]
 ford = 'NPX:ford'
 
-[tool.flit.sdist]
-include = ["src/NPX/__init__.py"] # windows is strange with capital letters
+#[tool.flit.sdist]
+#include = ["src/NPX/__init__.py"] # windows is strange with capital letters

@@ -33,14 +33,14 @@ def ford3(
     p = Path(src)
     date = p.parent.name  # takes date from source directory, not current date
     pro_label = p.parent.parent.name
-    pro_dir = Path(__file__).parent.parent / "sdata" / pro_label / date
+    pro_dir = Path(__file__).parent.parent.parent / "sdata" / pro_label / date
     npx_fn = pro_dir / f"{p.stem}_v{version}.npx.xml"
     print(f"* Force parameter is set to '{force}'")
     print(f"* Asset restriction set to '{assets}'")
     print(f"* Using project dir '{pro_dir}'")
     print(f"* Mapping version {version}")
 
-    xsl_dir = Path(__file__).parent.parent / "xsl"
+    xsl_dir = Path(__file__).parent.parent / "data" / "xsl"
     match version:
         case 1:
             if assets == "smb":
