@@ -29,7 +29,17 @@
 	-->
 
     <xsl:template match="/">
-        <npx version="20240529">
+        <npx version="20240607">
+			<xsl:comment>
+npx format is a dumbed-down version of the old mpx, designed to be convertable to csv.
+1. Elements are typically called as in MuseumPlus's GUI.
+3. Elements inside the record (or items) are called fields.
+2. Empty fields are supposed to appear as empty elements and may not be repeated.
+4. Fields are ordered alphabetically.
+5. All qualifiers are resolved in the elements according to a specified schema.
+6. Multipe entries are resolved in text using ; as separator.
+			</xsl:comment>
+
 			<!--include only smb-freigebene medien!-->
 			<xsl:apply-templates select="/z:application/z:modules/z:module[@name = 'Multimedia']/z:moduleItem[
 				z:dataField[@name = 'MulOriginalFileTxt']

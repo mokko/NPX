@@ -21,17 +21,16 @@
 		</xsl:message-->
 		<xsl:variable name="condition" select="z:dataField[@name='ConditionClb']"/>
 		<xsl:variable name="notes" select="z:dataField[@name='NotesClb']"/>
-		<zustandKurz>
-			<xsl:if test="$condition ne ''">
-				<xsl:value-of select="$condition"/>
-			</xsl:if>
-			<xsl:if test="$condition ne '' and $notes ne ''">
-				<xsl:text>; </xsl:text>
-			</xsl:if>
-			<xsl:if test="$notes ne ''">
-				<xsl:value-of select="$notes"/>
-			</xsl:if>
-		</zustandKurz>
+		<xsl:if test="$condition ne ''">
+			<xsl:value-of select="$condition"/>
+		</xsl:if>
+		<xsl:if test="$condition ne '' and $notes ne ''">
+			<xsl:text>; </xsl:text>
+		</xsl:if>
+		<xsl:if test="$notes ne ''">
+			<xsl:text>Bemerkung: </xsl:text>
+			<xsl:value-of select="$notes"/>
+		</xsl:if>
 	</xsl:template>
 
 	<!-- Beleuchtung-->
@@ -53,25 +52,23 @@
 			<xsl:value-of select="$lux"/>
 		</xsl:message>
 
-		<beleuchtung>
-			<xsl:if test="$text ne ''">
-				<xsl:value-of select="$text"/>
-			</xsl:if>
-			<xsl:if test="$uv ne '' or lux ne ''">
-				<xsl:text>; </xsl:text>
-			</xsl:if>
-			<xsl:if test="$uv ne '' or lux ne ''">
-				<xsl:text>UV: </xsl:text>
-				<xsl:value-of select="$uv"/>
-			</xsl:if>
-			<xsl:if test="$uv ne '' and $lux ne ''">
-				<xsl:text>; </xsl:text>
-			</xsl:if>
-			<xsl:if test="$lux ne ''">
-				<xsl:text>Lux: </xsl:text>
-				<xsl:value-of select="$lux"/>
-			</xsl:if>
-		</beleuchtung>
+		<xsl:if test="$text ne ''">
+			<xsl:value-of select="$text"/>
+		</xsl:if>
+		<xsl:if test="$uv ne '' or lux ne ''">
+			<xsl:text>; </xsl:text>
+		</xsl:if>
+		<xsl:if test="$uv ne '' or lux ne ''">
+			<xsl:text>UV: </xsl:text>
+			<xsl:value-of select="$uv"/>
+		</xsl:if>
+		<xsl:if test="$uv ne '' and $lux ne ''">
+			<xsl:text>; </xsl:text>
+		</xsl:if>
+		<xsl:if test="$lux ne ''">
+			<xsl:text>Lux: </xsl:text>
+			<xsl:value-of select="$lux"/>
+		</xsl:if>
 	</xsl:template>
 
 	<xsl:template match="z:repeatableGroup[
@@ -83,7 +80,11 @@
 					z:formattedValue = 'aktuell'
 				]
 			]">
-		<!-- there should be only ever one current group in ObjConservationTermsGrp -->
+		<!-- 
+		there should be only ever one current group in ObjConservationTermsGrp 
+
+		How can we make sure that always is one of those elements?
+		-->
 		<KABemerkungen>
 			<xsl:value-of select="z:dataField[@name='NotesClb']/z:value"/>
 		</KABemerkungen>
@@ -128,4 +129,38 @@
 			<xsl:value-of select="z:dataField[@name='PackingClb']/z:value"/>
 		</KAVerpackung>
 	</xsl:template>
+
+	<!-- tested  -->
+	<xsl:template match="z:repeatableGroup[
+				not (@name='ObjConservationTermsGrp')
+			] | z:repeatableGroup[
+				@name='ObjConservationTermsGrp'
+			][
+				z:repeatableGroupItem/z:vocabularyReference[
+					@name ='StatusVoc'
+				]/z:vocabularyReferenceItem[
+					not(z:formattedValue = 'aktuell')
+				]
+			]">
+		<xsl:message>
+			<xsl:text>WARNING: Record without current entry in table "konservator.Auflagen", objId: </xsl:text>
+			<xsl:value-of select="../@id"/>
+		</xsl:message>
+		<xsl:comment>no table konservator. Auflagen or no current table</xsl:comment>
+		<KABemerkungen/>
+		<KABemLeih/>
+		<KADatum/>
+		<KAHandling/>
+		<KALagerung/>
+		<KALeihfähigkeit/>
+		<KALuftfeuchte/>
+		<KAMontageRahmenSockel/>
+		<KAPräsentation/>
+		<KASchädBelast/>
+		<KASicherheit/>
+		<KATemperatur/>
+		<KATransport/>
+		<KAVerpackung/>
+	</xsl:template>
+
 </xsl:stylesheet>

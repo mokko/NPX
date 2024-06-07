@@ -5,6 +5,7 @@ __version__ = "0.0.1"  # first version
 import argparse
 from NPX.ford3 import ford3
 
+
 def ford():
     parser = argparse.ArgumentParser(description="Automation for SHF chain")
     parser.add_argument(

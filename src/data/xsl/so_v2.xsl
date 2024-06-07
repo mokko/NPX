@@ -43,10 +43,12 @@
 			</bearbDatum>
 
 			<!-- Beleuchtung -->
-			<xsl:apply-templates select="z:repeatableGroup[
-				@name = 'ObjIlluminationGrp'
-				and z:repeatableGroupItem/z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Aktuell'
-			]"/>
+			<beleuchtung>
+				<xsl:apply-templates select="z:repeatableGroup[
+					@name = 'ObjIlluminationGrp'
+					and z:repeatableGroupItem/z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Aktuell'
+				]"/>
+			</beleuchtung>
 			
 			<bereich>
 				<xsl:value-of select="z:vocabularyReference[@name = 'ObjOrgGroupVoc']/z:vocabularyReferenceItem/@name"/>
@@ -58,8 +60,6 @@
 			</credits>
 			<!--datierung-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjDateGrp']"/> 
-			<erwerbDatum/>
-			<erwerbVon/>
 			<!--xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionDateGrp']"/> 
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
 			erwerbVon
@@ -98,9 +98,10 @@
 			<!-- ikonografie -->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjIconographyGrp']"/>
 
-			<ikonografieKurz>
+			<!--ikonografieKurz>
+			Auf Wunsch von Cornelia am 7.6.24 ausgestellt
 				<xsl:value-of select="z:dataField[@name='ObjIconographyContentBriefClb']/z:value"/>
-			</ikonografieKurz>
+			</ikonografieKurz-->
 
 			<!--konserv. Auflagen-->
 			<xsl:apply-templates select="z:repeatableGroup[
@@ -174,7 +175,7 @@
 			<!--titel-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectTitleGrp']"/>
 
-			<!--veräußerer-->
+			<!--neu veräußerung-->
 			<xsl:apply-templates select="z:moduleReference[
 				@name='ObjPerAssociationRef' and 
 			./z:moduleReferenceItem/z:vocabularyReference/z:vocabularyReferenceItem/@name='Veräußerung']"/>
@@ -183,12 +184,13 @@
 			</verwaltendeInstitution>
 			
 			<!-- zustandKurz-->
-
-			<xsl:apply-templates select="z:repeatableGroup[
-				@name = 'ObjConditionGrp'
-			]/z:repeatableGroupItem[
-				z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'aktuell'
-			]"/>
+			<zustandKurz>
+				<xsl:apply-templates select="z:repeatableGroup[
+					@name = 'ObjConditionGrp'
+				]/z:repeatableGroupItem[
+					z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'aktuell'
+				]"/>
+			</zustandKurz>
 		</sammlungsobjekt>
 	</xsl:template>
 
@@ -220,8 +222,16 @@
 					<xsl:text>Beteiligte Sort: </xsl:text>
 					<xsl:value-of select="z:dataField[@name='SortLnu']/z:value"/>
 				</xsl:message-->
-				<xsl:variable name="role" select="z:vocabularyReference[@name='RoleVoc']/z:vocabularyReferenceItem/@name"/>
-				<xsl:value-of select="substring-before(z:formattedValue, concat(', ', $role))"/>
+				<xsl:variable name="role" select="z:vocabularyReference[@name='RoleVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
+				<xsl:variable name="name" select="substring-before(z:formattedValue, concat(', ', $role))"/>
+				<!--xsl:message>
+					<xsl:text>Beteiligte '</xsl:text>
+					<xsl:value-of select="$name"/>
+					<xsl:text>' '</xsl:text>
+					<xsl:value-of select="$role"/>
+					<xsl:text>'</xsl:text>
+				</xsl:message-->
+				<xsl:value-of select="$name"/>
 				<xsl:text> [</xsl:text>
 				<xsl:value-of select="$role"/>
 				<xsl:text>]</xsl:text>
@@ -236,35 +246,6 @@
 	<xsl:template match="z:vocabularyReference[@name='ObjCreditLineVoc']">
 			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
 	</xsl:template>	
-
-	<!--
-	xsl:template match="z:repeatableGroup[@name='ObjAcquisitionDateGrp']">
-		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
-		<erwerbDatum>
-			<xsl:for-each select="z:repeatableGroupItem">
-				<xsl:sort select="z:dataField[@name='SortLnu']/z:value"/>
-				<xsl:if test="len &gt; 1">
-					<xsl:call-template name="sortQ"/> 
-				</xsl:if>
-				<xsl:value-of select="z:dataField[@name = 'DateFromTxt']"/>
-                <xsl:if test="position()!=last()">
-                    <xsl:text>; </xsl:text>
-                </xsl:if>
-			</xsl:for-each>
-		</erwerbDatum>
-	</xsl:template-->			 
-
-	<!--xsl:template match="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']">
-		<xsl:variable name="len" select="count(z:repeatableGroupItem)"/>
-		<erwerbungsart>
-			<xsl:for-each select="z:repeatableGroupItem">
-				<xsl:value-of select="z:vocabularyReference[@name = 'MethodVoc']/z:vocabularyReferenceItem/@name"/>
-                <xsl:if test="position()!=last()">
-                    <xsl:text>; </xsl:text>
-                </xsl:if>
-			</xsl:for-each>
-		</erwerbungsart>
-	</xsl:template-->			 
 
 	<!--datierung-->
 	<xsl:template match="z:repeatableGroup[@name='ObjDateGrp']">
