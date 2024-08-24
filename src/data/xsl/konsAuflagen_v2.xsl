@@ -131,7 +131,7 @@
 	</xsl:template>
 
 	<!-- tested  -->
-	<xsl:template match="z:repeatableGroup[
+	<xsl:template match="z:modules[@name = 'Object']/z:moduleItem/z:repeatableGroup[
 				not (@name='ObjConservationTermsGrp')
 			] | z:repeatableGroup[
 				@name='ObjConservationTermsGrp'

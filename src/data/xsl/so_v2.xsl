@@ -19,6 +19,7 @@
 
 			<!-- ausstellung !!Funktioniert bei altem Export nicht!! -->
 			<ausstellung>
+				<xsl:comment>basiert auf RIA-Ausstellung, die mit String "HUFO -" anfängt.</xsl:comment>
 				<xsl:for-each select="/z:application/z:modules/z:module[
 					@name = 'Exhibition']/z:moduleItem[1]/z:repeatableGroup[
 					@name = 'ExhTitleGrp']/z:repeatableGroupItem/z:dataField[
@@ -32,6 +33,7 @@
 				</xsl:for-each>
 			</ausstellung>
 			<ausstellungSektion>
+				<xsl:comment>basiert Registrar-Feld, das nur bei RIA-Ausstellungen exportiert wird.</xsl:comment>
 				<xsl:value-of select="/z:application/z:modules/z:module[
 					@name = 'Registrar']/z:moduleItem/z:moduleReference[
 					@name = 'RegObjectRef']/z:moduleReferenceItem[
@@ -60,12 +62,14 @@
 			</credits>
 			<!--datierung-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjDateGrp']"/> 
+
 			<!--xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionDateGrp']"/> 
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
 			erwerbVon
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjAcquisitionMethodGrp']"/>
 			z:repeatableGroupItem/z:vocabularyReference/z:vocabularyReferenceItem[z:formattedValue = 'Ausgabe']
 			-->
+
 			<!--erwerbNotizAusgabe -->
 			<xsl:if test="z:repeatableGroup[@name='ObjAcquisitionNotesGrp']/z:repeatableGroupItem[
 						z:vocabularyReference/z:vocabularyReferenceItem/z:formattedValue = 'Ausgabe']">
@@ -81,16 +85,6 @@
 			</xsl:if>
 			
 			
-			<!--  
-						and 
-						
-												and /z:repeatableGroupItem/z:vocabularyReference[
-							@name = 'TypeVoc'
-						]/z:vocabularyReferenceItem[
-							z:formattedValue = 'Daten freigegeben für SMB-digital'
-						] 
-
-						-->
 			<!-- geogrBezug-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjGeograficGrp']"/>
 			<!-- identNr-->
@@ -99,7 +93,7 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjIconographyGrp']"/>
 
 			<!--ikonografieKurz>
-			Auf Wunsch von Cornelia am 7.6.24 ausgestellt
+			Auf Wunsch von Cornelia entfernt am 7.6.24 
 				<xsl:value-of select="z:dataField[@name='ObjIconographyContentBriefClb']/z:value"/>
 			</ikonografieKurz-->
 
@@ -166,9 +160,81 @@
 				Aus Sicherheitsgründen sollen nur Standorte aus HF Ausstellungen an SHF übergeben werden. 
 				Cornelia möchte lieber alle Standorte auf einmal und so lange leere Felder.
 				Hier werden nur definitive aktuelle Standorte ausgegeben, keine historischen.
+				
+				TODO: Die SHF wünscht nur die Übergabe von Objekten in Ausstellungen. Dazu brauchen wir eine
+				Positivliste mit allen Ausstellungsräumen (ohne WAF).
+				HUF##O1.189.01.K1 Modul 13
+				HUF##O1.196.01.K2 Modul 11
+				HUF##O2.017.B2 Modul 37 Treffpunkt Afrika
+				HUF##O2.019.P3 Modul 39 Klänge der Welt
+				HUF##O2.020.P1 Modul 30 Benin
+				HUF##O2.029.B3 Modul 15 
+				HUF##O2.037.B3 Modul 16
+				HUF##O2.047.B5 Modul 21 Am Humboldtstrom
+				HUF##O2.061.B5 Modul 23 Azteken
+				HUF##O2.073.B5 Modul 29 Benin
+				HUF##O2.124.K1 Modul 14 Ozeanien Schiffe
+				HUF##O2.133.K2 Modul 12 Kubus Nord Galerie
+				HUF##O2.160.01.B2 Modul 35 Intro Afrika
+				HUF##O2.160.02.B2 Modul 36 Schaumagazin Afrika
+				HUF##O2.161.B4 Modul 19 Ein Sammler
+				HUF##O2.163.01.B5 Modul 24 Kommunikationssysteme
+				HUF##O2.163.02.B5 Schaumagazin Amerika
+				HUF##O2.163.03.B5 Cotzmalhualpa-Stelen
+				HUF##O2.163.04.B5 Modul 26 Goldkammer
+				HUF##O2.164.P4 Modul 18 Treffpunkt Nordamerika
+				HUF##O3.001.P1 Modul 56 Asiatisches Theater
+				HUF##O3.014.B2 Modul 61 Südasien Skulpturen
+				HUF##O3.090.K1 Modul 43 Studiensammlung Zentralasien
+				HUF##O3.124.B1 Modul 57 Südostasien
+				HUF##O3.125.01.B2 Introraum Südostasien
+				HUF##O3.127.02.B3 Modul 46
+				HUF##O3.128.B4 Modul 48 China Religion
+				HUF##O3.130.B5 Modul 55 Selbstbestimmung
+				HUF##O3.131.01.B5 Modul 53 Islam
+				
+				Ausstellung fraglich?
+				HUF##O3.125.02.B2 314
+				HUF##O3.126.P3    317
+				HUF##O3.127.01.B3 319
+				HUF##O3.131.02 B5 306
+				HUF##O3.131.03.B5
+				HUF##RA242				
 			-->
+			<xsl:variable name="Ausstellungen" select="
+				'HUF##O1.189.01.K1',
+				'HUF##O1.196.01.K2',
+				'HUF##O2.017.B2',
+				'HUF##O2.019.P3',
+				'HUF##O2.020.P1',
+				'HUF##O2.029.B3',
+				'HUF##O2.037.B3',
+				'HUF##O2.047.B5',
+				'HUF##O2.061.B5',
+				'HUF##O2.073.B5',
+				'HUF##O2.124.K1',
+				'HUF##O2.133.K2',
+				'HUF##O2.160.01.B2',
+				'HUF##O2.160.02.B2',
+				'HUF##O2.161.B4',
+				'HUF##O2.163.01.B5',
+				'HUF##O2.163.02.B5',
+				'HUF##O2.163.03.B5',
+				'HUF##O2.163.04.B5',
+				'HUF##O2.164.P4',
+				'HUF##O3.001.P1',
+				'HUF##O3.014.B2',
+				'HUF##O3.090.K1',
+				'HUF##O3.124.B1',
+				'HUF##O3.125.01.B2',
+				'HUF##O3.127.02.B3',
+				'HUF##O3.128.B4',
+				'HUF##O3.130.B5',
+				'HUF##O3.131.01.B5'
+			"/>
+			
 			<standortAktuellHf>
-				<xsl:if test="starts-with(z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name, 'HUF##')">
+				<xsl:if test="some $Ausstellung in $Ausstellungen satisfies starts-with(z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name, $Ausstellung)">
 					<xsl:value-of select="z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name"/>
 				</xsl:if>
 			</standortAktuellHf>

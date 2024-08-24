@@ -14,19 +14,28 @@
 			</bearbDatum>
 			<!--datum-->
 			<xsl:apply-templates select="z:dataField[@name = 'MulDateTxt']"/>
+
 			<!--dateiname-->
 			<xsl:apply-templates select="z:dataField[@name='MulOriginalFileTxt']"/>
+
 			<!--farbe-->
 			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulColorVoc']"/>
+
 			<!--freigabe-->
 			<xsl:apply-templates select="z:repeatableGroup[@name = 'MulApprovalGrp']"/>
+			<xsl:if test="not(z:repeatableGroup[@name = 'MulApprovalGrp'])">
+				<freigabe/>
+			</xsl:if>
+
 			<!--funktion-->
 			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulCategoryVoc']"/>
+
 			<!--inhaltAnsicht-->
 			<xsl:apply-templates select="z:dataField[@name = 'MulSubjectTxt']"/>
 			<mulId>
 				<xsl:value-of select="@id"/>
 			</mulId>
+
 			<sort>
 				<xsl:value-of select="z:composite[@name='MulReferencesCre']/z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[@name='SortLnu']/z:value"/>
 			</sort>
@@ -136,7 +145,4 @@
 		</verknüpftesObjekt>
 	</xsl:template>
 	
-	
 </xsl:stylesheet>
-
-

@@ -40,7 +40,10 @@ npx format is a dumbed-down version of the old mpx, designed to be convertable t
 6. Multipe entries are resolved in text using ; as separator.
 			</xsl:comment>
 		
-			<!--include only smb-freigebene medien!-->
+			<!--
+				mm 
+				include only smb-freigebene medien!
+			-->
 			<xsl:apply-templates select="/z:application/z:modules/z:module[@name = 'Multimedia']/z:moduleItem[
 				z:repeatableGroup[@name = 'MulApprovalGrp']
 					/z:repeatableGroupItem/z:vocabularyReference[
@@ -51,6 +54,8 @@ npx format is a dumbed-down version of the old mpx, designed to be convertable t
 						@name = 'ApprovalVoc']/z:vocabularyReferenceItem[
 						@name = 'Ja']
 				]" />
+				
+			<!--so-->
 			<xsl:apply-templates select="/z:application/z:modules/z:module[@name='Object']/z:moduleItem" />
         </npx>
     </xsl:template>
