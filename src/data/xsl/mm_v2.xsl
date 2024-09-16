@@ -37,7 +37,11 @@
 			</mulId>
 
 			<sort>
-				<xsl:value-of select="z:composite[@name='MulReferencesCre']/z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[@name='SortLnu']/z:value"/>
+				<xsl:value-of select="z:composite[
+					@name='MulReferencesCre'
+				]/z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[
+					@name='SortLnu'
+				]/z:value"/>
 			</sort>
 			<xsl:if test="z:composite[
 				@name='MulReferencesCre'
@@ -140,9 +144,18 @@
 	</xsl:template>
 
 	<xsl:template match="z:composite[@name = 'MulReferencesCre']">
+		<xsl:variable name="objId" select="z:compositeItem/z:moduleReference/z:moduleReferenceItem/@moduleItemId"/>
 		<verknüpftesObjekt>
-			<xsl:value-of select="z:compositeItem/z:moduleReference/z:moduleReferenceItem/@moduleItemId"/>
+			<xsl:value-of select="$objId"/>
 		</verknüpftesObjekt>
+		<verknüpftesObjektIdentNr>
+			<xsl:value-of select="/z:application/z:modules/z:module[
+				@name = 'Object'
+			]/z:moduleItem[
+				@id = $objId
+			]/z:virtualField[
+				@name = 'ObjObjectNumberVrt'
+			]/z:value"/>
+		</verknüpftesObjektIdentNr>
 	</xsl:template>
-	
 </xsl:stylesheet>

@@ -17,29 +17,7 @@
 			<!-- anzahlTeile-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjNumberObjectsGrp']"/>
 
-			<!-- ausstellung !!Funktioniert bei altem Export nicht!! -->
-			<ausstellung>
-				<xsl:comment>basiert auf RIA-Ausstellung, die mit String "HUFO -" anfängt.</xsl:comment>
-				<xsl:for-each select="/z:application/z:modules/z:module[
-					@name = 'Exhibition']/z:moduleItem[1]/z:repeatableGroup[
-					@name = 'ExhTitleGrp']/z:repeatableGroupItem/z:dataField[
-					@name = 'TitleClb']/z:value">
-					<xsl:if test="starts-with(.,'HUFO -')">
-						<xsl:value-of select="."/>
-					</xsl:if>
-					<xsl:if test="position()!=last()">
-						<xsl:text>; </xsl:text>
-					</xsl:if>
-				</xsl:for-each>
-			</ausstellung>
-			<ausstellungSektion>
-				<xsl:comment>basiert Registrar-Feld, das nur bei RIA-Ausstellungen exportiert wird.</xsl:comment>
-				<xsl:value-of select="/z:application/z:modules/z:module[
-					@name = 'Registrar']/z:moduleItem/z:moduleReference[
-					@name = 'RegObjectRef']/z:moduleReferenceItem[
-					@moduleItemId = $id]/../../z:virtualField[
-					@name = 'RegSectionVrt']"/>
-			</ausstellungSektion>
+			<!-- ausstellung !!Funktioniert bei altem Export nicht!! durch Standort ersetzt-->
 			<bearbDatum>
 				<xsl:value-of select="z:systemField[@name='__lastModified']/z:value"/>
 			</bearbDatum>
@@ -89,13 +67,10 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjGeograficGrp']"/>
 			<!-- identNr-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectNumberGrp']"/>
-			<!-- ikonografie -->
-			<xsl:apply-templates select="z:repeatableGroup[@name='ObjIconographyGrp']"/>
 
-			<!--ikonografieKurz>
-			Auf Wunsch von Cornelia entfernt am 7.6.24 
-				<xsl:value-of select="z:dataField[@name='ObjIconographyContentBriefClb']/z:value"/>
-			</ikonografieKurz-->
+			<!--
+			ikonografieKurz (7.6.24) und ikonografieEM (16.9.2024) auf Wunsch von Cornelia entfernt
+			-->
 
 			<!--konserv. Auflagen-->
 			<xsl:apply-templates select="z:repeatableGroup[
@@ -112,8 +87,7 @@
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjTextOnlineGrp']"/>
 			<!-- oov -->
 			<xsl:apply-templates select="z:composite[@name='ObjObjectCre']"/>
-			<!--rauteElement-->
-			<xsl:apply-templates select="z:moduleReference[@name='ObjObjectGroupsRef']"/>
+			<!--rauteElement und rauteModul wegen neuem Standort entfernt 16.9.2024 -->
 
 			<!-- todo multiple sachbegriffe-->
 			<sachbegriff>
@@ -416,17 +390,6 @@
 		</identNr>
 	</xsl:template>
 
-	<!-- ikonografie -->
-	<xsl:template match="z:repeatableGroup[@name='ObjIconographyGrp']">
-		<ikonografieEM>
-			<xsl:for-each select="z:repeatableGroupItem/@id">
-				<xsl:value-of select="."/>
-                <xsl:if test="position()!=last()">
-                    <xsl:text>; </xsl:text>
-                </xsl:if>
-			</xsl:for-each>
-		</ikonografieEM>
-	</xsl:template> 
 
 	<!--
 	Verpackungs- und Transportmaße sollen nicht ausgespielt werden
@@ -514,67 +477,6 @@
                 </xsl:if>
 			</xsl:for-each>
 		</oov>
-	</xsl:template>
-	<!-- 
-		rauteElement, e.g.
-		'HUF-E39040#' in EM 
-		'HUFO - E12345 -' in AKU
-		RA wird keine Element-Nr
-		
-		rauteElement and rauteModul can be empty (against my usual habit)
-	-->
-	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
-		<rauteElement>
-			<xsl:for-each select="z:moduleReferenceItem">
-				<xsl:choose>
-					<xsl:when test="z:formattedValue[contains (., '#')]">
-						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ](E\d\d\d\d\d)(.*)#">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-								<xsl:value-of select="regex-group(2)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - ')]">
-						<xsl:analyze-string select="z:formattedValue" regex="- (E\d+) - ">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-				</xsl:choose>
-			</xsl:for-each>
-		</rauteElement>
-		<rauteModul>
-			<xsl:for-each select="z:moduleReferenceItem">
-				<xsl:choose>
-					<xsl:when test="z:formattedValue[contains (., '#') and 
-						starts-with (., 'EM') and
-						contains (., 'HUF')
-						]">
-						<xsl:analyze-string select="z:formattedValue" regex="E(\d\d)">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - E')]">
-						<xsl:analyze-string select="z:formattedValue" regex="HUFO - E(\d\d)\d* - ">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - RA')]">
-						<xsl:analyze-string select="z:formattedValue" regex="Modul (\d\d)">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-				</xsl:choose>
-			</xsl:for-each>
-		</rauteModul>
 	</xsl:template>
 
 	<!-- titel -->
