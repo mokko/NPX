@@ -43,14 +43,14 @@
 		<xsl:variable name="uv" select="z:vocabularyReference[@name='UVVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
 		<xsl:variable name="lux" select="z:vocabularyReference[@name='LuxVoc']/z:vocabularyReferenceItem/z:formattedValue"/>
 
-		<xsl:message>
+		<!--xsl:message>
 			<xsl:text>BELEUCHTUNG: </xsl:text>
 			<xsl:value-of select="$text"/>
 			<xsl:text>|</xsl:text>
 			<xsl:value-of select="$uv"/>
 			<xsl:text>|</xsl:text>
 			<xsl:value-of select="$lux"/>
-		</xsl:message>
+		</xsl:message-->
 
 		<xsl:if test="$text ne ''">
 			<xsl:value-of select="$text"/>

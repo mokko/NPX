@@ -36,21 +36,47 @@
 				<xsl:value-of select="@id"/>
 			</mulId>
 
+			<!-- 
+				If image is standardbild set sort = 1
+				Elsif sort has a numeric value add 1 to it
+				If sort is empty, leave it empty
+			-->
 			<sort>
-				<xsl:value-of select="z:composite[
+				<xsl:variable name="sort_orig" select="z:composite[
 					@name='MulReferencesCre'
 				]/z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[
 					@name='SortLnu'
 				]/z:value"/>
+				<!--xsl:message>
+					<xsl:text>SORT_ORIG: </xsl:text>
+					<xsl:value-of select="$sort_orig"></xsl:value-of>
+				</xsl:message-->
+				<xsl:choose>
+					<xsl:when test="z:composite[
+						@name='MulReferencesCre'
+					]/z:compositeItem/z:moduleReference/z:moduleReferenceItem[
+						z:dataField[
+							@name = 'ThumbnailBoo'
+						]/z:value = 'true']">
+						<xsl:text>1</xsl:text>
+					</xsl:when>
+					<xsl:when test="$sort_orig ne ''">
+						<xsl:value-of select="number($sort_orig)+1"/>
+					</xsl:when>
+				</xsl:choose>
 			</sort>
-			<xsl:if test="z:composite[
-				@name='MulReferencesCre'
-			][
-				z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[
-					@name = 'ThumbnailBoo'
-				]/z:value = 'true'
-			]">
-				<standardbild>
+			<!-- 
+				in the past it was possible that the standardbild element did not exist
+				hence an csv was possible that didnt have this column
+			-->
+			<standardbild>
+				<xsl:if test="z:composite[
+					@name='MulReferencesCre'
+				][
+					z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[
+						@name = 'ThumbnailBoo'
+					]/z:value = 'true'
+				]">
 					<xsl:value-of select="z:composite[
 						@name='MulReferencesCre'
 					]/z:compositeItem/z:moduleReference/z:moduleReferenceItem[
@@ -58,8 +84,9 @@
 							@name = 'ThumbnailBoo'
 						]/z:value = 'true'
 					]/@moduleItemId"/>
-				</standardbild>
-			</xsl:if>
+				</xsl:if>
+			</standardbild>
+			
 			<!-- Typ -->
 			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulTypeVoc']"/>
 			<!-- urhebFotograf -->
@@ -146,16 +173,22 @@
 	<xsl:template match="z:composite[@name = 'MulReferencesCre']">
 		<xsl:variable name="objId" select="z:compositeItem/z:moduleReference/z:moduleReferenceItem/@moduleItemId"/>
 		<verknüpftesObjekt>
-			<xsl:value-of select="$objId"/>
+			<xsl:for-each select="$objId">
+				<xsl:value-of select="." />
+				<xsl:if test="position() != last()">; </xsl:if>
+			</xsl:for-each> 
 		</verknüpftesObjekt>
 		<verknüpftesObjektIdentNr>
-			<xsl:value-of select="/z:application/z:modules/z:module[
+			<xsl:for-each select="/z:application/z:modules/z:module[
 				@name = 'Object'
 			]/z:moduleItem[
 				@id = $objId
 			]/z:virtualField[
 				@name = 'ObjObjectNumberVrt'
-			]/z:value"/>
+			]/z:value">
+				<xsl:value-of select="." />
+				<xsl:if test="position() != last()">; </xsl:if>
+			</xsl:for-each> 
 		</verknüpftesObjektIdentNr>
 	</xsl:template>
 </xsl:stylesheet>
