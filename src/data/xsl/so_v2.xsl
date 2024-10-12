@@ -6,6 +6,10 @@
 	xmlns:z="http://www.zetcom.com/ria/ws/module"
     exclude-result-prefixes="npx z">
 	<xsl:import href="konsAuflagen_v2.xsl"/>
+
+	<!-- version 2 of the npx exchange format, has been remodelled together with Cornelia
+		from SHF in 2024 pretty much from the ground up. 
+	-->
 	
 	<!-- TOP -->
 	<xsl:template match="/z:application/z:modules/z:module[@name='Object']/z:moduleItem">
@@ -17,7 +21,6 @@
 			<!-- anzahlTeile-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjNumberObjectsGrp']"/>
 
-			<!-- ausstellung !!Funktioniert bei altem Export nicht!! durch Standort ersetzt-->
 			<bearbDatum>
 				<xsl:value-of select="z:systemField[@name='__lastModified']/z:value"/>
 			</bearbDatum>
@@ -88,14 +91,53 @@
 			<!-- oov -->
 			<xsl:apply-templates select="z:composite[@name='ObjObjectCre']"/>
 			<!--rauteElement und rauteModul-->
-			<xsl:apply-templates select="z:moduleReference[@name='ObjObjectGroupsRef']"/>	<!-- 
-		rauteElement, e.g.
-		'HUF-E39040#' in EM 
-		'HUFO - E12345 -' in AKU
-		RA wird keine Element-Nr
-		
-		rauteElement and rauteModul can be empty (against my usual habit)
-	-->
+			<!-- 
+			rauteElement und rauteModul 
+			in v1 these two fields were based on RIA:Objektgruppe(ObjObjectGroupsRef), in v2 these are supposed 
+			to be based on Standort.
+			-->
+			<xsl:variable name="ständiger" select="z:vocabularyReference[@name='ObjNormalLocationVoc']/z:vocabularyReferenceItem"/>
+			<xsl:variable name="aktueller" select="z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem"/>
+			<xsl:choose>
+				<xsl:when test="contains ($ständiger/@name, 'HUF##')">
+					<!--xsl:message>
+						<xsl:text>STÄNDIGER: </xsl:text>
+						<xsl:value-of select="$ständiger/z:formattedValue[@language = 'de']"/>
+					</xsl:message-->
+					<rauteElement>
+						<xsl:value-of select="$ständiger/z:formattedValue[@language = 'de']"/>
+					</rauteElement>
+					<rauteModul>
+						<xsl:analyze-string select="$ständiger/z:formattedValue" regex="E(\d\d)\d\d\d">
+							<xsl:matching-substring>
+								<xsl:value-of select="regex-group(1)"/>
+							</xsl:matching-substring>
+						</xsl:analyze-string>
+					</rauteModul>
+				</xsl:when>
+				<xsl:when test="contains ($aktueller/@name, 'HUF##')">
+					<!--xsl:message>
+						<xsl:text>AKTUELLER: </xsl:text>
+						<xsl:value-of select="$aktueller/z:formattedValue[@language = 'de']"/>
+					</xsl:message-->
+					<rauteElement>
+						<xsl:value-of select="$aktueller/z:formattedValue[@language = 'de']"/>
+					</rauteElement>
+					<rauteModul>
+						<xsl:analyze-string select="$ständiger/z:formattedValue" regex="E(\d\d)\d\d\d">
+							<xsl:matching-substring>
+								<xsl:value-of select="regex-group(1)"/>
+							</xsl:matching-substring>
+						</xsl:analyze-string>
+					</rauteModul>
+				</xsl:when>
+				<xsl:otherwise>
+					<rauteElement/>
+						<xsl:comment>otherwise</xsl:comment>
+					<rauteModul/>
+				</xsl:otherwise>
+			</xsl:choose>
+
 
 			<!-- todo multiple sachbegriffe-->
 			<sachbegriff>
@@ -127,6 +169,10 @@
 				</xsl:choose> 	
 			</SMBfreigabe>
 
+			<!-- 
+			contains standardbild's mulID if there is a standardbild and is empty if there is no 
+			standardbild
+			-->
 			<standardbild>
 				<xsl:value-of select="z:moduleReference[
 					@name ='ObjMultimediaRef'
@@ -215,10 +261,29 @@
 				'HUF##O3.131.01.B5'
 			"/>
 			
+			
+			<!-- 
+			we want locations from either Ständiger STO oder aktueller STO, in the recent 
+			past we only got aktueller Standort; if both ständiger and aktueller have a 
+			whitelisted HUF location, we prefer ständiger.
+			-->
+			<xsl:variable name="ständiger" select="z:vocabularyReference[@name='ObjNormalLocationVoc']/z:vocabularyReferenceItem/@name"/>
+			<xsl:variable name="aktueller" select="z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name"/>
+
 			<standortAktuellHf>
-				<xsl:if test="some $Ausstellung in $Ausstellungen satisfies starts-with(z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name, $Ausstellung)">
-					<xsl:value-of select="z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name"/>
-				</xsl:if>
+				<xsl:choose>
+					<xsl:when test="some $Ausstellung in $Ausstellungen satisfies starts-with($ständiger, $Ausstellung)">
+						<xsl:value-of select="$ständiger"/>
+						<xsl:text> [ständiger Standort]</xsl:text>
+					</xsl:when>
+					<xsl:when test="some $Ausstellung in $Ausstellungen satisfies starts-with($aktueller, $Ausstellung)">
+						<xsl:value-of select="$aktueller"/>
+						<xsl:text> [aktueller Standort]</xsl:text>
+					</xsl:when>
+					<xsl:otherwise>
+						<!-- no whitelised HUF standort, leave field empty-->
+					</xsl:otherwise>
+				</xsl:choose>
 			</standortAktuellHf>
 			<!--titel-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectTitleGrp']"/>
@@ -487,60 +552,6 @@
 		</oov>
 	</xsl:template>
 
-	<!-- rauteElement und rauteModul -->
-	<xsl:template match="z:moduleReference[@name='ObjObjectGroupsRef']">
-		<rauteElement>
-			<xsl:for-each select="z:moduleReferenceItem">
-				<xsl:choose>
-					<xsl:when test="z:formattedValue[contains (., '#')]">
-						<xsl:analyze-string select="z:formattedValue" regex="HUF[- ](E\d\d\d\d\d)(.*)#">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-								<xsl:value-of select="regex-group(2)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - ')]">
-						<xsl:analyze-string select="z:formattedValue" regex="- (E\d+) - ">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-				</xsl:choose>
-			</xsl:for-each>
-		</rauteElement>
-		<rauteModul>
-			<xsl:for-each select="z:moduleReferenceItem">
-				<xsl:choose>
-					<xsl:when test="z:formattedValue[contains (., '#') and 
-						starts-with (., 'EM') and
-						contains (., 'HUF')
-						]">
-						<xsl:analyze-string select="z:formattedValue" regex="E(\d\d)">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - E')]">
-						<xsl:analyze-string select="z:formattedValue" regex="HUFO - E(\d\d)\d* - ">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-					<xsl:when test="z:formattedValue[starts-with (., 'HUFO - RA')]">
-						<xsl:analyze-string select="z:formattedValue" regex="Modul (\d\d)">
-							<xsl:matching-substring>
-								<xsl:value-of select="regex-group(1)"/>
-							</xsl:matching-substring>
-						</xsl:analyze-string>
-					</xsl:when>
-				</xsl:choose>
-			</xsl:for-each>
-		</rauteModul>
-	</xsl:template>
 
 	<!-- titel -->
 	<xsl:template match="z:repeatableGroup[@name='ObjObjectTitleGrp']">
