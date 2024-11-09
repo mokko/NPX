@@ -20,6 +20,7 @@ NEW
 import csv
 from pathlib import Path
 from saxonche import PySaxonProcessor
+import time
 import xml.etree.ElementTree as ET
 
 NSMAP = {

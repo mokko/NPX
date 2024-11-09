@@ -73,13 +73,13 @@
 				<xsl:if test="z:composite[
 					@name='MulReferencesCre'
 				][
-					z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[
+					z:compositeItem/z:moduleReference[@targetModule = 'Object']/z:moduleReferenceItem/z:dataField[
 						@name = 'ThumbnailBoo'
 					]/z:value = 'true'
 				]">
 					<xsl:value-of select="z:composite[
 						@name='MulReferencesCre'
-					]/z:compositeItem/z:moduleReference/z:moduleReferenceItem[
+					]/z:compositeItem/z:moduleReference[@targetModule = 'Object']/z:moduleReferenceItem[
 						z:dataField[
 							@name = 'ThumbnailBoo'
 						]/z:value = 'true'
@@ -171,7 +171,9 @@
 	</xsl:template>
 
 	<xsl:template match="z:composite[@name = 'MulReferencesCre']">
-		<xsl:variable name="objId" select="z:compositeItem/z:moduleReference/z:moduleReferenceItem/@moduleItemId"/>
+		<xsl:variable name="objId" select="z:compositeItem/z:moduleReference[
+			@targetModule = 'Object'
+		]/z:moduleReferenceItem/@moduleItemId"/>
 		<verknüpftesObjekt>
 			<xsl:for-each select="$objId">
 				<xsl:value-of select="." />

@@ -124,7 +124,7 @@
 						<xsl:value-of select="$aktueller/z:formattedValue[@language = 'de']"/>
 					</rauteElement>
 					<rauteModul>
-						<xsl:analyze-string select="$ständiger/z:formattedValue" regex="E(\d\d)\d\d\d">
+						<xsl:analyze-string select="$aktueller/z:formattedValue" regex="E(\d\d)\d\d\d">
 							<xsl:matching-substring>
 								<xsl:value-of select="regex-group(1)"/>
 							</xsl:matching-substring>
@@ -132,9 +132,7 @@
 					</rauteModul>
 				</xsl:when>
 				<xsl:otherwise>
-					<rauteElement/>
-						<xsl:comment>otherwise</xsl:comment>
-					<rauteModul/>
+					<xsl:comment>rauteElement/rauteModul otherwise</xsl:comment>
 				</xsl:otherwise>
 			</xsl:choose>
 
@@ -270,21 +268,21 @@
 			<xsl:variable name="ständiger" select="z:vocabularyReference[@name='ObjNormalLocationVoc']/z:vocabularyReferenceItem/@name"/>
 			<xsl:variable name="aktueller" select="z:vocabularyReference[@name='ObjCurrentLocationVoc']/z:vocabularyReferenceItem/@name"/>
 
-			<standortAktuellHf>
+			<standortAusstellungHF>
 				<xsl:choose>
 					<xsl:when test="some $Ausstellung in $Ausstellungen satisfies starts-with($ständiger, $Ausstellung)">
 						<xsl:value-of select="$ständiger"/>
-						<xsl:text> [ständiger Standort]</xsl:text>
+						<!--xsl:text> [ständiger Standort]</xsl:text-->
 					</xsl:when>
 					<xsl:when test="some $Ausstellung in $Ausstellungen satisfies starts-with($aktueller, $Ausstellung)">
 						<xsl:value-of select="$aktueller"/>
-						<xsl:text> [aktueller Standort]</xsl:text>
+						<!--xsl:text> [aktueller Standort]</xsl:text-->
 					</xsl:when>
 					<xsl:otherwise>
 						<!-- no whitelised HUF standort, leave field empty-->
 					</xsl:otherwise>
 				</xsl:choose>
-			</standortAktuellHf>
+			</standortAusstellungHF>
 			<!--titel-->
 			<xsl:apply-templates select="z:repeatableGroup[@name='ObjObjectTitleGrp']"/>
 
@@ -357,7 +355,7 @@
 
 	<!-- credits-->
 	<xsl:template match="z:vocabularyReference[@name='ObjCreditLineVoc']">
-			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
+			<xsl:value-of select="z:vocabularyReferenceItem/z:formattedValue[@language = 'de']"/>
 	</xsl:template>	
 
 	<!--datierung-->
@@ -511,20 +509,27 @@
 					xsl:sort select="z:dataField[@name='SortLnu']/z:value"/
 				-->
 				<xsl:variable name="txt" select="z:dataField[@name='TextClb']/z:value"/>
-				<xsl:variable name="before" select="normalize-space(substring-before($txt,'[SM8HF]'))"/>
-				<xsl:variable name="after" select="normalize-space(substring-after($txt,'[SM8HF]'))"/>
-				<xsl:variable name="new">
-					<xsl:if test="$before ne ''">
-						<xsl:value-of select="$before"/>
-					</xsl:if>
-					<xsl:if test="$before ne '' and $after ne ''">
-						<xsl:text> </xsl:text>
-					</xsl:if>
-					<xsl:if test="$after ne ''">
-						<xsl:value-of select="$after"/>
-					</xsl:if>
-				</xsl:variable>
-				<xsl:value-of select="$new"/>
+				<xsl:choose>
+					<xsl:when test="contains($txt, '[SM8HF]')">
+						<xsl:variable name="before" select="normalize-space(substring-before($txt,'[SM8HF]'))"/>
+						<xsl:variable name="after" select="normalize-space(substring-after($txt,'[SM8HF]'))"/>
+						<xsl:variable name="new">
+							<xsl:if test="$before ne ''">
+								<xsl:value-of select="$before"/>
+							</xsl:if>
+							<xsl:if test="$before ne '' and $after ne ''">
+								<xsl:text> </xsl:text>
+							</xsl:if>
+							<xsl:if test="$after ne ''">
+								<xsl:value-of select="$after"/>
+							</xsl:if>
+						</xsl:variable>
+						<xsl:value-of select="$new"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="$txt"/>
+					</xsl:otherwise>
+				</xsl:choose>
 				<xsl:if test="position()!=last()">
 					<xsl:text>; </xsl:text>
 				</xsl:if>

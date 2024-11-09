@@ -92,7 +92,7 @@
 			<xsl:value-of select="z:dataField[@name='LoanNotesClb']/z:value"/>
 		</KABemLeih>
 		<KADatum>
-			<xsl:value-of select="z:dataField[@name='DateDat']/z:formattedLanguage"/>
+			<xsl:value-of select="z:dataField[@name='DateDat']/z:formattedValue[@language ='de']"/>
 		</KADatum>
 		<KAHandling>
 			<xsl:value-of select="z:dataField[@name='HandlingClb']/z:value"/>
