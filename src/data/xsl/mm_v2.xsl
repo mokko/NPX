@@ -9,6 +9,16 @@
 	<!-- TOP-LEVEL ELEMENTS -->
 	<xsl:template match="/z:application/z:modules/z:module[@name='Multimedia']/z:moduleItem">
 		<multimediaobjekt>
+			<!-- 20250317 separate field for Ansicht new -->
+			<ansicht>
+				<xsl:apply-templates select="z:vocabularyReference[@name='MulViewVoc']"/>
+			</ansicht>
+
+			<!--artDerVorlage: war funktion bis 20250317-->
+			<artDerVorlage>
+				<xsl:apply-templates select="z:vocabularyReference[@name = 'MulCategoryVoc']"/>
+			</artDerVorlage>
+
 			<bearbDatum>
 				<xsl:value-of select="z:systemField[@name='__lastModified']/z:value"/>
 			</bearbDatum>
@@ -17,6 +27,16 @@
 
 			<!--dateiname-->
 			<xsl:apply-templates select="z:dataField[@name='MulOriginalFileTxt']"/>
+
+			<!-- neu Dateityp, war:Typ 20250317-->
+			<dateityp>
+				<xsl:apply-templates select="z:vocabularyReference[@name = 'MulTypeVoc']"/>
+			</dateityp>
+
+			<!-- neu 20250317-->
+			<digitalisiertDurch>
+				<xsl:value-of select="z:dataField[@name='MulDigitilizedByTxt']/z:value"/>
+			</digitalisiertDurch>
 
 			<!--farbe-->
 			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulColorVoc']"/>
@@ -27,11 +47,10 @@
 				<freigabe/>
 			</xsl:if>
 
-			<!--funktion-->
-			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulCategoryVoc']"/>
-
-			<!--inhaltAnsicht-->
-			<xsl:apply-templates select="z:dataField[@name = 'MulSubjectTxt']"/>
+			<!--inhalt 20250317 inhalt and ansicht getrennt-->
+			<inhalt>
+				<xsl:apply-templates select="z:dataField[@name = 'MulSubjectTxt']"/>
+			</inhalt>
 			<mulId>
 				<xsl:value-of select="@id"/>
 			</mulId>
@@ -86,9 +105,10 @@
 					]/@moduleItemId"/>
 				</xsl:if>
 			</standardbild>
-			
-			<!-- Typ -->
-			<xsl:apply-templates select="z:vocabularyReference[@name = 'MulTypeVoc']"/>
+
+			<typDetails>
+				<xsl:apply-templates select="z:dataField[@name = 'MulTypeTxt']"/>
+			</typDetails>
 			<!-- urhebFotograf -->
 			<xsl:apply-templates select="z:moduleReference[@name = 'MulPhotographerPerRef']"/>
 			<!-- verknüpftesObjekt-->
@@ -147,21 +167,20 @@
 	</xsl:template>
 
 	<xsl:template match="z:vocabularyReference[@name = 'MulCategoryVoc']">
-		<funktion>
-			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
-		</funktion>
+		<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
 	</xsl:template>
 
 	<xsl:template match="z:dataField[@name = 'MulSubjectTxt']">
-		<inhaltAnsicht>
-			<xsl:value-of select="z:value"/>
-		</inhaltAnsicht>
+		<xsl:value-of select="z:value"/>
 	</xsl:template>
 
 	<xsl:template match="z:vocabularyReference[@name = 'MulTypeVoc']">
-		<typ>
+		<xsl:value-of select="z:vocabularyReferenceItem/formattedValue[@language = 'de']"/>
+		<xsl:if test="z:vocabularyReferenceItem/@name ne ''">
+			<xsl:text> [</xsl:text>
 			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
-		</typ>
+			<xsl:text>[</xsl:text>
+		</xsl:if>
 	</xsl:template>
 
 	<xsl:template match="z:moduleReference[@name = 'MulPhotographerPerRef']">
@@ -193,4 +212,15 @@
 			</xsl:for-each> 
 		</verknüpftesObjektIdentNr>
 	</xsl:template>
+
+	<xsl:template match="z:vocabularyReference[@name='MulViewVoc']">
+			<xsl:value-of select="z:vocabularyReferenceItem/formattedValue[@language = 'de']"/>
+			<xsl:if test="z:vocabularyReferenceItem/@id ne ''">
+				<xsl:text> [</xsl:text>
+				<xsl:value-of select="z:vocabularyReferenceItem/@id"/>
+				<xsl:text>]</xsl:text>
+			</xsl:if>
+	</xsl:template>
+
+
 </xsl:stylesheet>
