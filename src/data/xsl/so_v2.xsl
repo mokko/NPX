@@ -311,7 +311,7 @@
 		<anzahlTeile>
 			<xsl:for-each select="z:repeatableGroupItem">
 				<xsl:sort select="z:dataField[@name='SortLnu']/z:value"/>
-				<xsl:if test="len &gt; 1">
+				<xsl:if test="$len &gt; 1">
 					<xsl:call-template name="sortQ"/> 
 				</xsl:if>
 				<xsl:value-of select="z:dataField[@name='NumberLnu']/z:value"/>
@@ -450,10 +450,26 @@
 		<identNr>
 			<xsl:for-each select="z:repeatableGroupItem">
 				<xsl:sort select="z:dataField[@name='SortLnu']/z:value"/>
-				<xsl:if test="len &gt; 1">
+				<xsl:variable name="identNr">
+					<xsl:choose>
+						<xsl:when test="z:dataField[@name='InventarNrSTxt']">
+							<xsl:value-of select="z:dataField[@name='InventarNrSTxt']"/>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:value-of select="z:virtualField[@name='NumberVrt']"/>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:variable>
+				<xsl:if test="$len &gt; 1">
 					<xsl:call-template name="sortQ"/> 
 				</xsl:if>
-				<xsl:value-of select="z:dataField[@name='InventarNrSTxt']"/>
+				<xsl:if test="$identNr eq ''">
+					<xsl:message>
+						<xsl:text>WARNUNG: Keine IdentNr </xsl:text>
+						<xsl:value-of select="../../@id"/>
+					</xsl:message>
+				</xsl:if>
+				<xsl:value-of select="$identNr"/>
                 <xsl:if test="position()!=last()">
                     <xsl:text>; </xsl:text>
                 </xsl:if>
