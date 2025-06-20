@@ -59,29 +59,35 @@
 				If image is standardbild set sort = 1
 				Elsif sort has a numeric value add 1 to it
 				If sort is empty, leave it empty
+				
+				I dont have the objId at this point. @id = mulId
+				No way to get to correct objId so I just pick the sort number 
+				of the first item. 
 			-->
 			<sort>
 				<xsl:variable name="sort_orig" select="z:composite[
-					@name='MulReferencesCre'
-				]/z:compositeItem/z:moduleReference/z:moduleReferenceItem/z:dataField[
+					@name='MulReferencesCre' 
+				]/z:compositeItem/z:moduleReference[
+					@targetModule='Object'
+				]/z:moduleReferenceItem[1]/z:dataField[
 					@name='SortLnu'
 				]/z:value"/>
-				<!--xsl:message>
-					<xsl:text>SORT_ORIG: </xsl:text>
-					<xsl:value-of select="$sort_orig"></xsl:value-of>
-				</xsl:message-->
+				<xsl:message>
+					<xsl:text>!!!!SORT_ORIG: </xsl:text>
+					<xsl:value-of select="$sort_orig"/>
+				</xsl:message>
 				<xsl:choose>
 					<xsl:when test="z:composite[
 						@name='MulReferencesCre'
 					]/z:compositeItem/z:moduleReference/z:moduleReferenceItem[
-						z:dataField[
-							@name = 'ThumbnailBoo'
-						]/z:value = 'true']">
+						@moduleItemId eq @id
+						]/z:value = 'true'">
 						<xsl:text>1</xsl:text>
 					</xsl:when>
 					<xsl:when test="$sort_orig ne ''">
 						<xsl:value-of select="number($sort_orig)+1"/>
 					</xsl:when>
+					<xsl:otherwise>100</xsl:otherwise>
 				</xsl:choose>
 			</sort>
 			<!-- 
@@ -175,11 +181,11 @@
 	</xsl:template>
 
 	<xsl:template match="z:vocabularyReference[@name = 'MulTypeVoc']">
-		<xsl:value-of select="z:vocabularyReferenceItem/formattedValue[@language = 'de']"/>
+		<xsl:value-of select="z:vocabularyReferenceItem/z:formattedValue[@language = 'de']"/>
 		<xsl:if test="z:vocabularyReferenceItem/@name ne ''">
 			<xsl:text> [</xsl:text>
 			<xsl:value-of select="z:vocabularyReferenceItem/@name"/>
-			<xsl:text>[</xsl:text>
+			<xsl:text>]</xsl:text>
 		</xsl:if>
 	</xsl:template>
 
